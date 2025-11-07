@@ -136,6 +136,86 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
 /* responsive */
 @media (max-width:1200px){ .card{width:95%} .cell img{width:72px;height:72px} }
 .hidden{display:none}
+
+
+/* --------------------------
+   Mobile-specific overrides
+   (applied when JS adds `mobile` class to <html>)
+   -------------------------- */
+html.mobile, body.mobile { -webkit-text-size-adjust: none; -ms-touch-action: manipulation; touch-action: manipulation; }
+html.mobile body { overflow:auto !important; -webkit-overflow-scrolling: touch; }
+
+/* Make the card stack and stretch on mobile */
+html.mobile .wrap { padding:12px; align-items:flex-start; justify-content:flex-start; }
+html.mobile .card {
+  width:100%;
+  max-width:980px;
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+  padding:14px;
+  border-radius:10px;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.9);
+}
+
+/* Ensure header, board-area, info are full-width and stacked */
+html.mobile header { grid-column:1; flex-direction:row; gap:8px; align-items:center; justify-content:space-between; padding-bottom:8px; }
+html.mobile header h1 { font-size:20px; }
+html.mobile .board-area { order: 2; width:100%; padding:6px; }
+html.mobile .info { order: 3; width:100%; padding:8px; }
+
+/* Make the payout & history scrollable but not too tall on mobile */
+html.mobile .payout-board, html.mobile .history { max-height:220px; overflow:auto; -webkit-overflow-scrolling:touch; }
+
+/* Board grid compress to 3 columns for readability on narrow screens */
+html.mobile .board { grid-template-columns: repeat(3, 1fr); gap:8px; min-height:260px; padding:8px; border-left:6px solid rgba(0,0,0,0.9); }
+html.mobile .col { padding:8px; border-top-width:4px; }
+html.mobile .cell img { width:72px; height:72px; }
+
+/* Enlarge touch targets */
+html.mobile .btn { padding:14px 22px; font-size:16px; border-radius:12px; }
+html.mobile .small { padding:10px 14px; font-size:15px; border-radius:10px; }
+html.mobile input[type=number] { padding:10px; font-size:16px; width:110px; }
+
+/* Music player: full width controls stacked */
+html.mobile .player { padding:10px; gap:10px; max-height:none; }
+html.mobile .player > div:first-child { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+html.mobile .player .playlist { max-height:180px; overflow:auto; }
+
+/* Make progress bar taller and easier to scrub */
+html.mobile .player .progress { height:12px; border-radius:999px; }
+html.mobile .player .progress .bar { transition: width .06s linear; }
+
+/* Win overlay adjustments */
+html.mobile .win-overlay { left:50%; top:40%; transform: translate(-50%,-40%) scale(0.98); min-width: 300px; max-width:92%; padding:16px; z-index:13000; }
+html.mobile .win-overlay .title { font-size:22px; }
+html.mobile .win-overlay .amount { font-size:28px; }
+
+/* Modal adjustments for touch */
+html.mobile .modal { margin: 16px; max-width: 96%; font-size:15px; padding:14px; }
+
+/* Small visual niceties */
+html.mobile .subtitle { display:none; } /* keep header compact on mobile */
+html.mobile .left-controls { gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* make overlays dismissable with swipe/tap */
+html.mobile #anti-inspect-overlay { touch-action: manipulation; }
+
+/* ensure high z-index UI components show above things */
+html.mobile .modal, html.mobile .win-overlay, html.mobile .player, html.mobile .card { z-index: 2000; }
+
+/* ensure clickable playlist items are roomy on mobile */
+html.mobile .playlist div { padding:10px; font-size:15px; }
+
+/* keep the footer/controls reachable */
+html.mobile .controls { flex-wrap:wrap; gap:10px; align-items:center; }
+
+/* reduce some shadows for performance on mobile */
+@media (max-width:450px){
+  html.mobile .card { padding:10px; }
+  html.mobile .btn { padding:12px 18px; font-size:15px; }
+  html.mobile .player .time { display:none; }
+}
 </style>
 </head>
 <body>
@@ -265,9 +345,9 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
 <script>
 /* Single-file client-side slot machine (static)
    Changes:
-    - Memes Mode provides meme-specific payout board (filenames → display names) and uses memes as symbols.
-    - Max Win: when center row contains distinct meme images across all columns (no repeats) it's a "max win" — bigger than jackpot.
-    - Audio and SFX still only play when Memes Mode active.
+    - Mobile responsive mode applied when html gets `mobile` class (JS below)
+    - Background music allowed in both modes; SFX still restricted to Memes Mode
+    - All original functionality preserved
 */
 
 /* ---------------------------
@@ -565,20 +645,26 @@ function winningIndicesCenter(resp){
   return [];
 }
 
-/* Check whether audio is allowed to play (only when memesMode active) */
-function audioAllowed(){
-  return !!memesMode;
+/* Background audio and SFX permission helpers
+   - backgroundAudioAllowed(): allows music controls in both modes
+   - sfxAllowed(): only true when memesMode active (keeps SFX restricted)
+*/
+function backgroundAudioAllowed(){
+  return true; // music may be played in both normal and memes modes
+}
+function sfxAllowed(){
+  return !!memesMode; // only play sfx in memes mode
 }
 
-/* Play random win/lose sfx (only if memes mode enabled) */
+/* Play random win/lose sfx (only if sfx allowed) */
 function playRandomWinSfx(){
-  if(!audioAllowed()) return;
+  if(!sfxAllowed()) return;
   if(sfxWins.length === 0) return;
   const pick = sfxWins[randInt(sfxWins.length)];
   try { new Audio(pick.url).play().catch(()=>{}); } catch(e){}
 }
 function playRandomLoseSfx(){
-  if(!audioAllowed()) return;
+  if(!sfxAllowed()) return;
   if(sfxLose.length === 0) return;
   const pick = sfxLose[randInt(sfxLose.length)];
   try { new Audio(pick.url).play().catch(()=>{}); } catch(e){}
@@ -1022,7 +1108,7 @@ memesBtn.addEventListener('click', async ()=>{
     memetopiaModal.style.display = 'flex';
     memetopiaModal.classList.add('active');
     memetopiaModal.setAttribute('aria-hidden', 'false');
-    // enabling memes mode: background audio and sfx are now permitted (user still must press Play to start background music)
+    // enabling memes mode: SFX will be available (background music already allowed)
   } else {
     title.textContent = 'The Fridge';
     memesBtn.textContent = 'Activate Memes Mode';
@@ -1040,15 +1126,7 @@ memesBtn.addEventListener('click', async ()=>{
         names[r].textContent = s.name;
       }
     }
-    // disable/stop background audio and revoke any object URLs loaded from local folder
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-    } catch(e){}
-    playlist.forEach(p=>{ if(p.file && p.url) URL.revokeObjectURL(p.url); });
-    playlist = [];
-    renderPlaylist();
-    playBtn.textContent = 'Play';
+    // do NOT stop background audio or clear playlist — music now plays in both modes
     // rebuild payout board back to default
     populatePayoutBoard();
   }
@@ -1062,20 +1140,14 @@ memetopiaContinue.addEventListener('click', ()=>{
 });
 
 /* ---------- Background music player (local-folder loader)
-   NOTE: this player will only actually play audio while memesMode is active.
-   Attempts to load/play when memesMode is off will be ignored (and show a small alert).
+   NOTE: this player will now play audio in both Normal and Memes Mode.
 ---------- */
 folderInput.addEventListener('change', (ev)=>{
-  // only allow loading music while memes mode is active
-  if(!memesMode){
-    alert('Enable Memes Mode to load or play background audio.');
-    folderInput.value = '';
-    return;
-  }
+  // allow loading music in either mode now
   const files = Array.from(ev.target.files || []);
   const audioFiles = files.filter(f=>/\.(mp3|m4a|mp4|wav|ogg|webm)$/i.test(f.name));
   audioFiles.sort((a,b)=>a.name.localeCompare(b.name,'en',{numeric:true}));
-  playlist.forEach(p=>{ if(p.file) URL.revokeObjectURL(p.url); });
+  playlist.forEach(p=>{ if(p.file && p.url) URL.revokeObjectURL(p.url); });
   playlist = audioFiles.map(f => ({ name: f.name, url: URL.createObjectURL(f), file: f }));
   renderPlaylist();
   if(playlist.length>0){ currentIndex = 0; loadIndex(0); audio.play().catch(()=>{}); playBtn.textContent='Pause'; }
@@ -1088,7 +1160,7 @@ function renderPlaylist(){
     el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='6px';
     el.style.gap = '8px';
     el.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:28px;height:28px;background:rgba(255,255,255,0.02);border-radius:4px;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${p.name}</div></div><div style="font-size:12px;color:var(--muted)">${i===currentIndex? 'Now' : ''}</div>`;
-    el.addEventListener('click', ()=>{ if(!memesMode){ alert('Enable Memes Mode to play audio.'); return; } loadIndex(i); audio.play(); playBtn.textContent='Pause'; });
+    el.addEventListener('click', ()=>{ loadIndex(i); audio.play(); playBtn.textContent='Pause'; });
     playlistEl.appendChild(el);
   });
 }
@@ -1102,23 +1174,18 @@ function loadIndex(i){
 }
 
 playBtn.addEventListener('click', ()=>{
-  if(!audioAllowed()){
-    alert('Enable Memes Mode to play background audio.');
-    return;
-  }
+  // Background music allowed in both modes
   if(!audio.src){ if(playlist.length>0) loadIndex(0); else return; }
   if(audio.paused){ audio.play().catch(()=>{}); playBtn.textContent='Pause'; } else { audio.pause(); playBtn.textContent='Play'; }
 });
 
 prevBtn.addEventListener('click', ()=>{
-  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   if(playlist.length===0) return;
   if(shuffleAudio){ currentIndex = Math.floor(Math.random()*playlist.length); }
   else currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
   loadIndex(currentIndex); audio.play(); playBtn.textContent='Pause';
 });
 nextBtn.addEventListener('click', ()=>{
-  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   if(playlist.length===0) return;
   if(shuffleAudio){ currentIndex = Math.floor(Math.random()*playlist.length); }
   else currentIndex = (currentIndex + 1) % playlist.length;
@@ -1126,16 +1193,13 @@ nextBtn.addEventListener('click', ()=>{
 });
 
 vol.addEventListener('input', ()=> { 
-  if(!audioAllowed()) { audio.volume = 0; vol.value = 0; return; }
   audio.volume = Number(vol.value); 
 });
 
 loopBtn.addEventListener('click', ()=>{
-  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   loopAudio = !loopAudio; loopBtn.textContent = loopAudio ? 'Loop: ON' : 'Loop: OFF'; audio.loop = loopAudio;
 });
 shuffleBtn.addEventListener('click', ()=>{
-  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   shuffleAudio = !shuffleAudio; shuffleBtn.textContent = shuffleAudio ? 'Shuffle: ON' : 'Shuffle: OFF';
 });
 
@@ -1148,7 +1212,7 @@ function updateTimeDisplay(){
 audio.addEventListener('timeupdate', updateTimeDisplay);
 audio.addEventListener('loadedmetadata', updateTimeDisplay);
 audio.addEventListener('ended', ()=>{
-  if(!audioAllowed()) return; // don't auto-advance if memes mode got disabled mid-play
+  // background audio allowed in both modes; don't block advancing
   if(loopAudio){ audio.currentTime = 0; audio.play(); return; }
   if(playlist.length>0){
     if(shuffleAudio) currentIndex = Math.floor(Math.random()*playlist.length);
@@ -1157,7 +1221,7 @@ audio.addEventListener('ended', ()=>{
   } else { playBtn.textContent = 'Play'; }
 });
 progress.addEventListener('click', (e)=>{
-  if(!audioAllowed()) return;
+  // allow scrubbing in both modes
   const rect = progress.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const pct = Math.max(0, Math.min(1, x/rect.width));
@@ -1337,11 +1401,64 @@ window.addEventListener('beforeunload', ()=>{
   });
 })();
 
+/* ---------------------------
+   Mobile detection & small JS helpers
+   --------------------------- */
+(function applyMobileLayout(){
+  try {
+    const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+    const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    const isMobile = isMobileUA || isTouch;
 
+    if(isMobile){
+      // add mobile class to html element so CSS mobile overrides apply
+      document.documentElement.classList.add('mobile');
+      // ensure body allows scrolling on mobile
+      document.body.style.overflow = 'auto';
 
+      // small accessibility/touch improvements:
+      // - increase tap target for playlist items if they exist
+      // - ensure focusable elements are easily reachable
+      setTimeout(()=> {
+        // make playlist items easier to tap (increase padding)
+        const items = document.querySelectorAll('.playlist div');
+        items.forEach(it => it.style.padding = it.style.padding ? it.style.padding : '10px');
 
+        // add aria hints for music controls
+        try {
+          playBtn.setAttribute('aria-label', 'Play or pause background music');
+          prevBtn.setAttribute('aria-label', 'Previous track');
+          nextBtn.setAttribute('aria-label', 'Next track');
+          vol.setAttribute('aria-label', 'Volume');
+        } catch(e){}
+      }, 200);
 
+      // If viewport is narrow, reduce columns shown in board visually for better scaling
+      // (we keep the logic using COLUMNS for game math — only visual layout changes)
+      // This is handled mostly by CSS (3 columns), but also ensure cells resized
+      const imgs = document.querySelectorAll('.cell img');
+      imgs.forEach(img => {
+        try { img.style.width = img.style.width || '72px'; img.style.height = img.style.height || '72px'; } catch(e){}
+      });
+
+      // Ensure overlay/modal fits on small screens: listen for orientation changes and adjust
+      window.addEventListener('orientationchange', ()=> {
+        setTimeout(()=> {
+          // try to re-center overlays and update layout
+          const overlay = document.getElementById('winOverlay');
+          if(overlay && overlay.classList.contains('show')) {
+            overlay.style.left = '50%';
+            overlay.style.top = (window.innerHeight * 0.4) + 'px';
+          }
+        }, 250);
+      });
+    }
+  } catch(e){
+    // fail quietly if anything breaks
+    console.warn('mobile layout init failed', e);
+  }
+})();
 </script>
 </body>
 </html>
-
