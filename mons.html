@@ -2,8 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Monster Slots — Single-file HTML</title>
+<title>Kenzies Fridge</title>
+<meta name="description" content="Welcome to Kenzies fridge!">
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<!-- Open Graph / Social -->
+<meta property="og:title" content="Kenzies Fridge">
+<meta property="og:description" content="Welcome to Kenzies fridge!">
+<meta property="og:image" content="https://raw.githubusercontent.com/kenzibets/monsterslots/main/static/image/66740930-089f-4730-84a7-ac40afa9beea.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kenzies Fridge">
+<meta name="twitter:description" content="Welcome to Kenzies fridge!">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/kenzibets/monsterslots/main/static/image/66740930-089f-4730-84a7-ac40afa9beea.png">
+
+<link rel="icon" href="https://raw.githubusercontent.com/kenzibets/monsterslots/main/static/image/66740930-089f-4730-84a7-ac40afa9beea.png" />
+
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&family=Nosifer&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -31,46 +45,25 @@ body::after{
   filter:blur(18px); pointer-events:none;
 }
 
-/* memes mode (kept minimal) */
-body.memes-mode {
-  background: linear-gradient(180deg,#f7f7f7,#e9e9e9);
-  color: #0b0b0b;
-}
-body.memes-mode::before {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.9) 100%),
-    url('https://source.unsplash.com/1600x900/?grunge,white,wall') center/cover no-repeat;
-  mix-blend-mode: normal; opacity:0.96;
-}
-body.memes-mode::after { filter: blur(6px); opacity:0.08; }
-
 /* layout */
 .wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:28px;overflow:auto}
 .card{width:1150px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.45));border-radius:12px;padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.95);display:grid;grid-template-columns:1fr 440px;gap:18px;border:4px solid rgba(0,0,0,0.7)}
 header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding-bottom:6px}
 header h1{margin:0;font-size:24px;letter-spacing:1px;font-weight:900;color:var(--accent-green)}
-body.memes-mode header h1{color:#111111}
 .subtitle{color:var(--muted);font-size:13px}
 
 /* board */
-.board-area{padding:8px;border-radius:8px;display:flex;flex-direction:column;gap:12px;align-items:center;position:relative;overflow:visible}
+.board-area{padding:8px;border-radius:8px;Display:flex;flex-direction:column;gap:12px;align-items:center;position:relative;overflow:visible}
 .controls{display:flex;align-items:center;gap:10px;width:100%;justify-content:space-between}
 .left-controls{display:flex;gap:12px;align-items:center}
 .btn{background:linear-gradient(180deg,#0bf04a,#0a7e2e);border:none;padding:12px 20px;border-radius:10px;color:#050505;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(11,180,60,0.08)}
-body.memes-mode .btn { background: linear-gradient(180deg,#ffffff,#e6e6e6); color:#111; box-shadow:0 8px 18px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.06) }
 .small{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-body.memes-mode .small{ border-color: rgba(0,0,0,0.06); color: #555; background: rgba(255,255,255,0.7) }
-
 input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;color:var(--muted);border-radius:8px}
-body.memes-mode input[type=number]{ background: rgba(255,255,255,0.95); color:#111; border-color: rgba(0,0,0,0.06) }
 
 /* board grid (5 x 3) */
 .board{display:grid;grid-template-columns: repeat(5, 1fr);gap:12px;align-items:stretch;justify-items:stretch;padding:10px;background:linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.14));border-radius:12px;border-left:10px solid rgba(0,0,0,0.9);position:relative;min-height:360px}
-body.memes-mode .board { background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,250,250,0.9)); border-left-color: rgba(0,0,0,0.06) }
 .col{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25));border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;position:relative;border-top:6px solid rgba(0,0,0,0.9);transition:transform .18s}
-body.memes-mode .col { background: rgba(255,255,255,0.9); border-top-color: rgba(0,0,0,0.06) }
 .cell{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:8px;background:rgba(0,0,0,0.04);border-radius:6px}
-body.memes-mode .cell{ background: rgba(255,255,255,0.98) }
 .cell img{width:92px;height:92px;object-fit:contain;transition:transform .35s,filter .25s}
 .cell .name{font-size:12px;color:var(--muted);margin-top:8px}
 
@@ -78,28 +71,22 @@ body.memes-mode .cell{ background: rgba(255,255,255,0.98) }
 .col .col-mult{position:absolute;left:50%;transform:translateX(-50%);top:8px;font-family:"Nosifer","Rubik",sans-serif;font-size:46px;color:var(--accent-green);pointer-events:none;text-shadow:0 2px 0 rgba(0,0,0,0.9);opacity:0.95;transition:transform .25s,opacity .18s;letter-spacing:6px}
 .col .col-mult.small{font-size:28px;top:auto;bottom:12px;opacity:.7}
 .col .col-mult.hidden{opacity:0;transform:translateX(-50%) scale(.92)}
-body.memes-mode .col .col-mult { color: #111; text-shadow: none }
 
 /* states */
 .col.spinning img{transform:translateY(-6px) scale(.98)}
 .col.win{box-shadow:0 12px 44px rgba(12,240,74,0.22), inset 0 0 18px rgba(12,240,74,0.06);transform:translateY(-6px);transition:transform .22s}
-body.memes-mode .col.win{ box-shadow: 0 12px 44px rgba(0,0,0,0.06), inset 0 0 8px rgba(0,0,0,0.02) }
 .col.bigwin{animation:colBig .9s ease 0s 1}
 @keyframes colBig{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
 
 /* info area */
 .info{background:linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.18));padding:12px;border-radius:8px;display:flex;flex-direction:column;gap:12px}
-body.memes-mode .info { background: rgba(255,255,255,0.96) }
 .balance{font-size:36px;font-weight:900;color:var(--accent-green);letter-spacing:1px}
-body.memes-mode .balance { color: #111 }
 .muted{color:var(--muted);font-size:13px}
-.payout-board{background:rgba(0,0,0,0.25);padding:10px;border-radius:6px;max-height:180px;overflow:auto}
-.history{background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;max-height:220px;overflow:auto}
+.payout-board{background:rgba(0,0,0,0.25);padding:12px;border-radius:6px;max-height:220px;overflow:auto;font-size:14px;line-height:1.28}
+.payout-board img { width:40px;height:40px }
+.history{background:rgba(0,0,0,0.2);padding:12px;border-radius:6px;max-height:260px;overflow:auto;font-size:14px;line-height:1.28}
 .history-item{display:flex;justify-content:space-between;padding:6px 0;align-items:center;opacity:0;animation:slideIn .32s ease forwards}
 @keyframes slideIn{to{opacity:1;transform:none}from{opacity:0;transform:translateY(-8px)}}
-
-/* memes UI - minimal per request (no extra text) */
-#memesBox{border:2px dashed rgba(255,255,255,0.06);padding:8px;border-radius:8px;background:rgba(0,0,0,0.06);display:block}
 
 /* Win overlay (center) */
 .win-overlay {
@@ -124,17 +111,14 @@ body.memes-mode .balance { color: #111 }
 .win-overlay.small { background: linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.95)); }
 .win-overlay.mid { background: linear-gradient(180deg, rgba(6,20,6,0.96), rgba(10,40,10,0.97)); border: 1px solid rgba(12,240,74,0.08); }
 .win-overlay.jackpot { background: linear-gradient(180deg, rgba(50,5,5,0.96), rgba(90,10,10,0.98)); border: 2px solid rgba(255,215,0,0.18); }
-
-/* subtle animation presets */
+.win-overlay.maxwin { background: linear-gradient(180deg, rgba(12,60,12,0.96), rgba(12,120,12,0.98)); border: 2px solid rgba(12,240,74,0.22); box-shadow: 0 40px 120px rgba(12,240,74,0.18); color: #dbffd9; }
 .win-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); transition: all 560ms cubic-bezier(.2,.9,.2,1); pointer-events: auto; }
 @keyframes popScale { 0%{transform: translate(-50%,-50%) scale(0.7)} 60%{transform: translate(-50%,-50%) scale(1.08)} 100%{transform: translate(-50%,-50%) scale(1)} }
 .win-overlay.pop { animation: popScale 700ms cubic-bezier(.2,.9,.2,1); }
-
-/* small win pulse */
 .win-overlay.pulse { animation: pulse 900ms ease-in-out; }
 @keyframes pulse { 0% { transform: translate(-50%,-50%) scale(.9); } 50% { transform: translate(-50%,-50%) scale(1.03); } 100% { transform: translate(-50%,-50%) scale(1); } }
 
-/* music player: keep compact and ensure playlist scrolls inside its box (doesn't push the page) */
+/* music player: compact and playlist scrolls inside box */
 .player{display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,0.12);padding:8px;border-radius:8px;max-height:360px}
 .player .playlist{background:rgba(0,0,0,0.06);padding:6px;border-radius:6px;max-height:140px;overflow:auto}
 .player .progress{height:8px;background:rgba(255,255,255,0.04);border-radius:999px;position:relative;cursor:pointer}
@@ -159,12 +143,11 @@ body.memes-mode .balance { color: #111 }
   <div class="card" role="application" id="card">
     <header>
       <div>
-        <h1 id="title">Monster Slots <span style="font-size:12px;color:var(--muted);font-weight:600">— Memes & Win SFX (Single-file)</span></h1>
-        <div class="subtitle">Local music folder only — select folder in the player.</div>
+        <h1 id="title">Kenzies Frigde <span style="font-size:12px;color:var(--muted);font-weight:600"></span></h1>
+        <div class="subtitle">Welcome to kenzies fridge.</div>
       </div>
       <div style="text-align:right">
-        <div class="muted">Theme</div>
-        <div style="font-weight:700;color:var(--muted)">Monster • Grunge</div>
+        <!-- Theme text removed as requested -->
       </div>
     </header>
 
@@ -183,7 +166,7 @@ body.memes-mode .balance { color: #111 }
           <button id="maxBtn" class="small">MAX</button>
           <button id="clearBtn" class="small">RESET BAL</button>
 
-          <!-- MEMES MODE BUTTON -->
+          <!-- MEMES MODE BUTTON (does NOT change colors) -->
           <button id="memesBtn" class="small">Activate Memes Mode</button>
 
         </div>
@@ -194,7 +177,8 @@ body.memes-mode .balance { color: #111 }
             <div class="muted">Play</div>
             <div id="buttonArea" style="margin-top:6px">
               <button id="spinBtn" class="btn">SPIN</button>
-              <button id="autoBtn" class="small" style="margin-left:8px">AUTO 10</button>
+              <!-- auto on the right of spin -->
+              <button id="autoBtn" class="small" style="margin-left:12px">AUTO 10</button>
             </div>
             <div id="lastWin" class="muted" style="margin-top:6px">—</div>
           </div>
@@ -205,11 +189,10 @@ body.memes-mode .balance { color: #111 }
 
       <div class="particles" id="particles"></div>
 
-      <!-- Memes mode minimal UI -->
+      <!-- Minimal memesBox placeholder (kept hidden mostly) -->
       <div id="memesBox" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><strong>Memes mode</strong></div>
-          <div style="display:flex;gap:10px;align-items:center"></div>
         </div>
       </div>
 
@@ -263,11 +246,11 @@ body.memes-mode .balance { color: #111 }
   </div>
 </div>
 
-<!-- Memetopia modal (non-blocking; spin still works) -->
+<!-- Memetopia modal (explanatory text, doesn't show counts) -->
 <div id="memetopiaModal" class="modal-overlay" aria-hidden="true" style="display:none">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="memetopiaTitle">
     <h2 id="memetopiaTitle">Memetopia</h2>
-    <p id="memetopiaBody">Memes mode active. Press Continue to dismiss.</p>
+    <p id="memetopiaBody">Memetopia replaces standard slot symbols with images (including animated GIFs) and plays win/lose sounds from the repo. Use it to personalize the slot with memes and audio hosted in the repository folders. Press Continue to proceed.</p>
     <button id="memetopiaContinue" class="continue-btn flash">CONTINUE</button>
   </div>
 </div>
@@ -280,11 +263,11 @@ body.memes-mode .balance { color: #111 }
 </div>
 
 <script>
-/* Single-file client-side implementation of the slot machine
-   - No server. All spin/payout logic in JS (matches your server logic).
-   - Only local folder input: music player (webkitdirectory). Playlist scrolls inside box.
-   - Memes mode toggles theme; uses same builtin SYMBOL images (no server autoload).
-   - Win overlay count-up + per-tier animations.
+/* Single-file client-side slot machine (static)
+   Changes:
+    - Memes Mode provides meme-specific payout board (filenames → display names) and uses memes as symbols.
+    - Max Win: when center row contains distinct meme images across all columns (no repeats) it's a "max win" — bigger than jackpot.
+    - Audio and SFX still only play when Memes Mode active.
 */
 
 /* ---------------------------
@@ -314,20 +297,34 @@ const SYMBOLS = [
     {"id": 8, "name": "Monster F",   "img": symbolImages[8], "mult3": 7,  "mult2": 1.3},
 ];
 
+/* Adjusted weighted symbol ids to make big payouts rarer (fewer entries for high-value symbols) */
 const WEIGHTED_SYMBOL_IDS = (
-    Array(6).fill(0).concat(Array(8).fill(1)).concat(Array(12).fill(2))
-    .concat(Array(16).fill(3)).concat(Array(20).fill(4)).concat(Array(30).fill(5))
-    .concat(Array(10).fill(6)).concat(Array(14).fill(7)).concat(Array(18).fill(8))
+  Array(3).fill(0)   // Green Slash - rarer
+  .concat(Array(4).fill(1))  // Red Slash - rarer
+  .concat(Array(8).fill(2))  // White Slash
+  .concat(Array(16).fill(3))
+  .concat(Array(22).fill(4))
+  .concat(Array(36).fill(5))
+  .concat(Array(5).fill(6))  // Monster D (strong) - much rarer now
+  .concat(Array(14).fill(7))
+  .concat(Array(20).fill(8))
 );
 
 /* Board */
 const COLUMNS = 5;
 const ROWS = 3;
 
+/* GitHub API endpoints (your repo) */
+const GITHUB_API_BASE = 'https://api.github.com/repos/kenzibets/monsterslots/contents';
+const MEMES_DIR = 'static/memes';
+const AUDIO_WINS_DIR = 'static/audios/wins';
+const AUDIO_LOSE_DIR = 'static/audios/lose';
+
 /* App state */
 let balance = 500.00;
 let autoRunning = false;
 let autoLeft = 0;
+let winShowing = false; // prevents spin while overlay visible
 
 /* DOM refs */
 const balanceEl = document.getElementById('balance');
@@ -374,10 +371,11 @@ let shuffleAudio = false;
 loopBtn.textContent = 'Loop: ON';
 shuffleBtn.textContent = 'Shuffle: OFF';
 
-/* Memes & SFX state (no server) - memesMode simply toggles theme and uses default SYMBOLS images */
-let memeImages = [];   // not used for server autoload in this single-file version
-let sfxWins = [];      // left empty (no server)
-let sfxLose = [];      // left empty
+/* Memes & SFX state */
+let memeImages = [];   // [{name, displayName, url}]
+let memeSymbols = [];  // [{ id, name, img, mult3, mult2, winName }]
+let sfxWins = [];      // [{name, url}]
+let sfxLose = [];      // [{name, url}]
 let memesMode = false;
 
 /* helpers */
@@ -409,24 +407,61 @@ function buildBoard(){
 }
 buildBoard();
 
-/* payout board */
+/* payout board (will show SYMBOLS normally or memes when memesMode active) */
 function populatePayoutBoard(){
   payoutBoardEl.innerHTML = '';
-  const sorted = SYMBOLS.slice().sort((a,b)=>b.mult3 - a.mult3);
-  for(const s of sorted){
-    const row = document.createElement('div');
-    row.className = 'payout-row';
-    row.innerHTML = `
-      <div style="display:flex;gap:10px;align-items:center">
-        <img src="${s.img}" style="width:34px;height:34px;object-fit:contain">
-        <div style="line-height:1">
-          <div style="font-weight:700">${s.name}</div>
-          <div class="muted" style="font-size:12px">3+ center → ${s.mult3}x • pair → ${s.mult2}x</div>
+  if(memesMode && memeSymbols.length){
+    // Show memes with their payouts and win names
+    // Sort by mult3 desc
+    const sorted = memeSymbols.slice().sort((a,b)=>b.mult3 - a.mult3);
+    for(const s of sorted){
+      const row = document.createElement('div');
+      row.className = 'payout-row';
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.padding = '6px 0';
+      row.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;min-width:0">
+          <img src="${s.img}" style="width:40px;height:40px;object-fit:contain">
+          <div style="line-height:1;min-width:0">
+            <div style="font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px">${s.winName}</div>
+            <div class="muted" style="font-size:12px">3+ center → ${s.mult3}x • pair → ${s.mult2}x</div>
+          </div>
         </div>
-      </div>
-      <div style="text-align:right"><div class="muted">id ${s.id}</div></div>
-    `;
-    payoutBoardEl.appendChild(row);
+        <div style="text-align:right"><div class="muted" style="font-size:13px">meme ${s.id}</div></div>
+      `;
+      payoutBoardEl.appendChild(row);
+    }
+    // Add Max Win descriptor at top
+    const maxRow = document.createElement('div');
+    maxRow.style.padding = '8px 0';
+    maxRow.style.borderTop = '1px dashed rgba(255,255,255,0.04)';
+    maxRow.style.marginTop = '6px';
+    maxRow.innerHTML = `<div style="font-weight:900;color:var(--accent-green)">MAX WIN — All slots show distinct memes (bigger than JACKPOT)</div><div class="muted" style="font-size:12px">Triggers when center row contains distinct meme images across all columns.</div>`;
+    payoutBoardEl.prepend(maxRow);
+  } else {
+    // default SYMBOLS
+    const sorted = SYMBOLS.slice().sort((a,b)=>b.mult3 - a.mult3);
+    for(const s of sorted){
+      const row = document.createElement('div');
+      row.className = 'payout-row';
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.padding = '6px 0';
+      row.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;min-width:0">
+          <img src="${s.img}" style="width:40px;height:40px;object-fit:contain">
+          <div style="line-height:1;min-width:0">
+            <div style="font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px">${s.name}</div>
+            <div class="muted" style="font-size:12px">3+ center → ${s.mult3}x • pair → ${s.mult2}x</div>
+          </div>
+        </div>
+        <div style="text-align:right"><div class="muted" style="font-size:13px">id ${s.id}</div></div>
+      `;
+      payoutBoardEl.appendChild(row);
+    }
   }
 }
 populatePayoutBoard();
@@ -452,9 +487,10 @@ function burstAt(x,y,color='rgba(12,240,74,0.95)'){
     setTimeout(()=> p.remove(), 1200);
   }
 }
-function cameraShake(){
+function cameraShake(intensity = 6){
   const card = document.getElementById('card');
-  card.animate([{ transform: 'translateY(0)' },{ transform: 'translateY(-6px)' },{ transform: 'translateY(3px)' },{ transform: 'translateY(-4px)' },{ transform: 'translateY(2px)' },{ transform: 'translateY(0)' }], { duration: 600, iterations: 1, easing: 'cubic-bezier(.16,.85,.4,1)'});
+  const dist = intensity;
+  card.animate([{ transform: 'translateY(0)' },{ transform: `translateY(-${dist}px)` },{ transform: `translateY(${Math.round(dist/2)}px)` },{ transform: `translateY(-${Math.round(dist/3)}px)` },{ transform: 'translateY(0)' }], { duration: 700, iterations: 1, easing: 'cubic-bezier(.16,.85,.4,1)'});
 }
 
 /* animate single column (concurrent spin) */
@@ -467,18 +503,31 @@ function animateColumn(colIndex, finalColSymbols){
     const ints = [];
     for(let r=0;r<ROWS;r++){
       ints[r] = setInterval(()=>{
-        // flicker random (memesMode uses same SYMBOLS in this file)
-        const s = SYMBOLS[randInt(SYMBOLS.length)];
-        imgs[r].src = s.img;
-        names[r].textContent = s.name;
+        if(memesMode && memeImages.length > 0){
+          const pick = memeImages[randInt(memeImages.length)];
+          imgs[r].src = pick.url;
+          names[r].textContent = pick.displayName;
+        } else {
+          const s = SYMBOLS[randInt(SYMBOLS.length)];
+          imgs[r].src = s.img;
+          names[r].textContent = s.name;
+        }
       }, 50);
     }
     for(let r=0;r<ROWS;r++){
       const stopAt = 360 + r*90 + Math.random()*120;
       setTimeout(()=>{
         clearInterval(ints[r]);
-        imgs[r].src = finalColSymbols[r].img;
-        names[r].textContent = finalColSymbols[r].name;
+        if(memesMode && memeImages.length > 0){
+          const serverId = finalColSymbols[r].id;
+          // finalColSymbols[r] is a memeSymbol entry
+          const memePick = memeSymbols[serverId % memeSymbols.length];
+          imgs[r].src = memePick.img;
+          names[r].textContent = memePick.winName;
+        } else {
+          imgs[r].src = finalColSymbols[r].img;
+          names[r].textContent = finalColSymbols[r].name;
+        }
         imgs[r].animate([{ transform: 'translateY(-8px) scale(.96)' }, { transform: 'translateY(0) scale(1)' }], { duration: 300, easing: 'cubic-bezier(.2,.9,.2,1)' });
       }, stopAt);
     }
@@ -491,6 +540,10 @@ function animateColumn(colIndex, finalColSymbols){
 function winningIndicesCenter(resp){
   if(!resp || resp.win_type === 'none') return [];
   const center = resp.center_row;
+  if(resp.win_type === 'maxwin'){
+    // all distinct center slots -> highlight all columns
+    return [...Array(center.length).keys()];
+  }
   if(resp.win_type === '3x'){
     let winId = null;
     for(let i=0;i<center.length;i++){
@@ -512,23 +565,41 @@ function winningIndicesCenter(resp){
   return [];
 }
 
-/* Play random win sfx if present in arrays (these arrays are empty in this file-only version) */
+/* Check whether audio is allowed to play (only when memesMode active) */
+function audioAllowed(){
+  return !!memesMode;
+}
+
+/* Play random win/lose sfx (only if memes mode enabled) */
 function playRandomWinSfx(){
+  if(!audioAllowed()) return;
   if(sfxWins.length === 0) return;
   const pick = sfxWins[randInt(sfxWins.length)];
   try { new Audio(pick.url).play().catch(()=>{}); } catch(e){}
 }
 function playRandomLoseSfx(){
+  if(!audioAllowed()) return;
   if(sfxLose.length === 0) return;
   const pick = sfxLose[randInt(sfxLose.length)];
   try { new Audio(pick.url).play().catch(()=>{}); } catch(e){}
 }
 
-/* Count-up display for wins */
+/* Count-up display for wins with instant-complete on click */
+let _winAnim = { raf: null, start: 0, end: 0, startTime: 0, duration: 0, onComplete: null };
 function showWinOverlay(amount, winType, message){
-  winOverlay.classList.remove('hidden','small','mid','jackpot','pop','pulse','show');
+  // prevent spins while visible
+  winShowing = true;
+  spinBtn.disabled = true;
+  autoBtn.disabled = true;
+
+  winOverlay.classList.remove('hidden','small','mid','jackpot','maxwin','pop','pulse','show');
   void winOverlay.offsetWidth;
-  if(winType === 'jackpot'){
+
+  if(winType === 'maxwin'){
+    winOverlay.classList.add('maxwin','pop','show');
+    winTitle.textContent = message || 'MAX WIN!';
+    winSub.textContent = 'ALL DISTINCT MEMES — MEGA HIT';
+  } else if(winType === 'jackpot'){
     winOverlay.classList.add('jackpot','pop','show');
     winTitle.textContent = message || 'JACKPOT!';
     winSub.textContent = 'MEGA WIN';
@@ -542,57 +613,109 @@ function showWinOverlay(amount, winType, message){
     winSub.textContent = '';
   }
 
-  const start = 0;
-  const end = Number(amount) || 0;
-  const absEnd = Math.abs(end);
-  let duration = 800;
-  if(absEnd >= 200) duration = 1600;
-  if(absEnd >= 1000) duration = 2600;
-  if(winType === 'jackpot') duration = 3000;
-
-  let startTime = null;
-  function step(ts){
-    if(!startTime) startTime = ts;
-    const elapsed = ts - startTime;
-    const t = Math.min(1, elapsed / duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const current = start + (end - start) * eased;
-    winAmountEl.textContent = `$${current.toFixed(2)}`;
-    if(t < 1) requestAnimationFrame(step);
-    else {
+  // prepare count-up
+  _winAnim.start = 0;
+  _winAnim.end = Number(amount) || 0;
+  const absEnd = Math.abs(_winAnim.end);
+  _winAnim.duration = 800;
+  if(absEnd >= 200) _winAnim.duration = 1400;
+  if(absEnd >= 1000) _winAnim.duration = 2200;
+  if(winType === 'jackpot') _winAnim.duration = 3000;
+  if(winType === 'maxwin') _winAnim.duration = 3800;
+  _winAnim.startTime = null;
+  _winAnim.onComplete = () => {
+    // hide overlay after short pause and re-enable spin
+    setTimeout(()=> {
+      winOverlay.classList.remove('show');
       setTimeout(()=> {
-        winOverlay.classList.remove('show');
-        setTimeout(()=> winOverlay.classList.add('hidden'), 500);
-      }, 1100);
+        winOverlay.classList.add('hidden');
+        winShowing = false;
+        // re-enable spin & auto only if not auto-running
+        spinBtn.disabled = false;
+        autoBtn.disabled = false;
+      }, 500);
+    }, 900);
+  };
+
+  // stronger camera shake / bursts for maxwin
+  if(winType === 'maxwin'){
+    cameraShake(12);
+    // big burst center
+    const boardRect = boardEl.getBoundingClientRect();
+    burstAt(boardRect.width/2, boardRect.height/2, 'rgba(12,240,74,0.98)');
+    burstAt(boardRect.width/2, boardRect.height/2, 'rgba(255,215,0,0.95)');
+  } else if(winType === 'jackpot'){
+    cameraShake(9);
+  }
+
+  // animation step
+  function step(ts){
+    if(!_winAnim.startTime) _winAnim.startTime = ts;
+    const elapsed = ts - _winAnim.startTime;
+    const t = Math.min(1, elapsed / _winAnim.duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const current = _winAnim.start + (_winAnim.end - _winAnim.start) * eased;
+    winAmountEl.textContent = `$${current.toFixed(2)}`;
+    if(t < 1 && _winAnim.raf !== 'finished'){
+      _winAnim.raf = requestAnimationFrame(step);
+    } else {
+      _winAnim.raf = null;
+      winAmountEl.textContent = `$${_winAnim.end.toFixed(2)}`;
+      _winAnim.onComplete && _winAnim.onComplete();
     }
   }
-  requestAnimationFrame(step);
+  // start animation
+  _winAnim.raf = requestAnimationFrame(step);
 
-  if(winType === 'jackpot') cameraShake();
+  // clicking anywhere should fast-forward the count-up to the end and finish overlay
+  const finishNow = (ev) => {
+    if(!_winAnim) return;
+    if(_winAnim.raf && _winAnim.raf !== 'finished'){
+      // cancel RAF
+      if(_winAnim.raf) cancelAnimationFrame(_winAnim.raf);
+      _winAnim.raf = 'finished';
+      winAmountEl.textContent = `$${_winAnim.end.toFixed(2)}`;
+      _winAnim.onComplete && _winAnim.onComplete();
+    }
+    document.removeEventListener('pointerdown', finishNow, true);
+  };
+  document.addEventListener('pointerdown', finishNow, true);
 }
 
 /* -------------- Spin logic (client-side) -------------- */
-/* Re-implements the server-side spin logic so there's no Flask dependency */
+/* Serverless spin supports both base SYMBOLS and memeSymbols when memesMode is active */
 function serverlessSpin(bet){
-  // choose grid column-major using WEIGHTED_SYMBOL_IDS
   const grid_ids = [];
-  for(let c=0;c<COLUMNS;c++){
-    const col = [];
-    for(let r=0;r<ROWS;r++){
-      col.push( WEIGHTED_SYMBOL_IDS[randInt(WEIGHTED_SYMBOL_IDS.length)] );
+  if(memesMode && memeSymbols.length){
+    // choose meme indices uniformly
+    for(let c=0;c<COLUMNS;c++){
+      const col = [];
+      for(let r=0;r<ROWS;r++){
+        col.push( randInt(memeSymbols.length) );
+      }
+      grid_ids.push(col);
     }
-    grid_ids.push(col);
+  } else {
+    for(let c=0;c<COLUMNS;c++){
+      const col = [];
+      for(let r=0;r<ROWS;r++){
+        col.push( WEIGHTED_SYMBOL_IDS[randInt(WEIGHTED_SYMBOL_IDS.length)] );
+      }
+      grid_ids.push(col);
+    }
   }
 
-  // Flatten symbol dicts column-major
   const grid_symbols = [];
   for(const col of grid_ids){
     for(const rid of col){
-      grid_symbols.push(SYMBOLS.find(s => s.id === rid));
+      if(memesMode && memeSymbols.length){
+        grid_symbols.push(memeSymbols.find(s => s.id === rid) || memeSymbols[0]);
+      } else {
+        grid_symbols.push(SYMBOLS.find(s => s.id === rid));
+      }
     }
   }
 
-  // Evaluate center row
   const center_row_index = Math.floor(ROWS/2);
   const center_ids = [];
   for(let c=0;c<COLUMNS;c++) center_ids.push(grid_ids[c][center_row_index]);
@@ -604,32 +727,76 @@ function serverlessSpin(bet){
   let win_type = "none";
   let winning_symbol = null;
 
-  for(const [ridStr, cnt] of Object.entries(counts)){
-    const rid = Number(ridStr);
-    if(cnt >= 3){
-      const sym = SYMBOLS.find(s => s.id === rid);
-      payout_multiplier = sym.mult3;
-      win_type = "3x";
-      winning_symbol = sym.name;
-      break;
-    }
-  }
-  if(payout_multiplier === 0){
-    for(const [ridStr, cnt] of Object.entries(counts)){
-      const rid = Number(ridStr);
-      if(cnt === 2){
-        const sym = SYMBOLS.find(s => s.id === rid);
-        payout_multiplier = sym.mult2;
-        win_type = "2x";
-        winning_symbol = sym.name;
-        break;
+  // Max Win check (memes mode only): if center row has all distinct ids across columns
+  if(memesMode && memeSymbols.length && (new Set(center_ids)).size === COLUMNS){
+    // treat as MAX WIN
+    win_type = 'maxwin';
+    // calculate a huge payout: e.g. average of involved meme mult3s times columns
+    const involvedMults = center_ids.map(id => (memeSymbols.find(s=>s.id===id) || {mult3:5}).mult3 );
+    const avg = involvedMults.reduce((a,b)=>a+b,0)/involvedMults.length;
+    payout_multiplier = Math.max( avg * 1.8, avg + 200 ); // large
+    winning_symbol = 'ALL MEMES';
+  } else {
+    // Normal win detection (3x first)
+    if(memesMode && memeSymbols.length){
+      for(const [ridStr, cnt] of Object.entries(counts)){
+        const rid = Number(ridStr);
+        if(cnt >= 3){
+          const sym = memeSymbols.find(s => s.id === rid);
+          payout_multiplier = sym.mult3;
+          win_type = "3x";
+          winning_symbol = sym.winName;
+          break;
+        }
+      }
+      if(payout_multiplier === 0){
+        for(const [ridStr, cnt] of Object.entries(counts)){
+          const rid = Number(ridStr);
+          if(cnt === 2){
+            const sym = memeSymbols.find(s => s.id === rid);
+            payout_multiplier = sym.mult2;
+            win_type = "2x";
+            winning_symbol = sym.winName;
+            break;
+          }
+        }
+      }
+    } else {
+      for(const [ridStr, cnt] of Object.entries(counts)){
+        const rid = Number(ridStr);
+        if(cnt >= 3){
+          const sym = SYMBOLS.find(s => s.id === rid);
+          payout_multiplier = sym.mult3;
+          win_type = "3x";
+          winning_symbol = sym.name;
+          break;
+        }
+      }
+      if(payout_multiplier === 0){
+        for(const [ridStr, cnt] of Object.entries(counts)){
+          const rid = Number(ridStr);
+          if(cnt === 2){
+            const sym = SYMBOLS.find(s => s.id === rid);
+            payout_multiplier = sym.mult2;
+            win_type = "2x";
+            winning_symbol = sym.name;
+            break;
+          }
+        }
       }
     }
   }
 
-  if(win_type === "2x" && center_ids.includes(6)) payout_multiplier *= 1.25;
+  // Slight tweak: 2x on special id in base code
+  if(!memesMode && win_type === "2x" && center_ids.includes(6)) payout_multiplier *= 1.25;
 
+  // compute win amount
   const win_amount = Math.round(bet * payout_multiplier * 100) / 100;
+
+  // message
+  let message = (win_type === "3x" ? "JACKPOT!" : (win_type === "2x" ? "Nice pair!" : "No win — try again."));
+  if(win_type === 'maxwin') message = 'MAX WIN — ALL DISTINCT MEMES!';
+  if(memesMode && winning_symbol) message = (win_type === '3x' ? `JACKPOT — ${winning_symbol}` : (win_type === '2x' ? `Nice Pair — ${winning_symbol}` : message));
 
   return {
     grid: grid_ids,
@@ -640,29 +807,32 @@ function serverlessSpin(bet){
     win_amount: win_amount,
     win_type: win_type,
     winning_symbol: winning_symbol,
-    message: (win_type === "3x" ? "JACKPOT!" : (win_type === "2x" ? "Nice pair!" : "No win — try again."))
+    message: message
   };
 }
 
 /* Main spin flow */
 async function doSpin(){
+  if(winShowing) return; // block if overlay visible
   spinBtn.disabled = true;
+  autoBtn.disabled = true;
   const bet = Math.max(1, Number(betInput.value) || 1);
-  if(bet > balance){ spinBtn.disabled = false; return; }
+  if(bet > balance){ spinBtn.disabled = false; autoBtn.disabled = false; return; }
   setBalance(balance - bet);
   lastWin.textContent = '—';
 
-  // get spin results from local function
   const resp = serverlessSpin(bet);
 
-  // animate columns concurrently
+  // animate all columns concurrently
   const colPromises = [];
   for(let c=0;c<COLUMNS;c++){
-    const finalSymbols = resp.grid[c].map(id => SYMBOLS.find(s => s.id === id));
+    const finalSymbols = resp.grid[c].map(id => {
+      if(memesMode && memeSymbols.length) return memeSymbols.find(s => s.id === id);
+      return SYMBOLS.find(s => s.id === id);
+    });
     colPromises.push( animateColumn(c, finalSymbols) );
   }
 
-  // await finish
   await Promise.all(colPromises);
 
   // highlight winners and play sfx if win
@@ -671,24 +841,27 @@ async function doSpin(){
     for(let c=0;c<COLUMNS;c++){
       const multEl = document.getElementById(`col-mult-${c}`);
       if(winIdxs.includes(c)){
-        multEl.textContent = resp.win_type === '3x' ? 'X3' : 'X2';
+        // label multipliers
+        multEl.textContent = resp.win_type === '3x' ? 'X3' : (resp.win_type === 'maxwin' ? 'MAX' : 'X2');
         multEl.classList.remove('hidden'); multEl.classList.remove('small');
         const colEl = document.getElementById(`col-${c}`);
         colEl.classList.add('win');
-        if(resp.win_type === '3x'){ colEl.classList.add('bigwin'); setTimeout(()=>colEl.classList.remove('bigwin'),1200); }
+        if(resp.win_type === '3x' || resp.win_type === 'maxwin'){ colEl.classList.add('bigwin'); setTimeout(()=>colEl.classList.remove('bigwin'),1200); }
         const centerCell = document.querySelector(`#col-${c} .cell:nth-child(${Math.floor(ROWS/2)+1})`);
         const rect = centerCell.getBoundingClientRect();
         const boardRect = boardEl.getBoundingClientRect();
         const x = rect.left + rect.width/2 - boardRect.left;
         const y = rect.top + rect.height/2 - boardRect.top;
-        burstAt(x,y);
+        burstAt(x,y, resp.win_type === 'maxwin' ? 'rgba(255,215,0,0.98)' : undefined);
       } else {
+        const multEl = document.getElementById(`col-mult-${c}`);
         multEl.textContent = 'X1';
         multEl.classList.remove('hidden'); multEl.classList.add('small');
         setTimeout(()=>multEl.classList.add('hidden'),700);
       }
     }
-    if(resp.win_type === '3x'){ cameraShake(); }
+    if(resp.win_type === '3x'){ cameraShake(9); }
+    if(resp.win_type === 'maxwin'){ cameraShake(12); }
     playRandomWinSfx();
   } else {
     for(let c=0;c<COLUMNS;c++){
@@ -700,29 +873,32 @@ async function doSpin(){
     playRandomLoseSfx();
   }
 
-  // payout
+  // payout and show animation
   if(resp.win_amount > 0){
     setBalance(balance + resp.win_amount);
     lastWin.textContent = `Center multiplier: ${resp.payout_multiplier}x (${resp.win_type})`;
 
     let winTypeVisual = 'small';
-    if(resp.win_type === '3x') winTypeVisual = 'jackpot';
+    if(resp.win_type === 'maxwin') winTypeVisual = 'maxwin';
+    else if(resp.win_type === '3x') winTypeVisual = 'jackpot';
     else if(resp.win_type === '2x') winTypeVisual = 'mid';
     let msg = resp.message;
-    if(winTypeVisual === 'jackpot') msg = `JACKPOT — ${resp.winning_symbol || ''}`;
-    else if(winTypeVisual === 'mid') msg = `Nice Pair — ${resp.winning_symbol || ''}`;
-    else msg = `Win — ${resp.winning_symbol || ''}`;
     showWinOverlay(resp.win_amount, winTypeVisual, msg);
   } else {
     lastWin.textContent = 'No win';
   }
 
-  // push history
+  // push history (use meme thumbnails when active)
   const historyRow = document.createElement('div');
   historyRow.className = 'history-item';
   const centerThumbs = resp.center_row.map(id => {
-    const s = SYMBOLS.find(x=>x.id===id);
-    return `<img src="${s.img}" style="width:24px;height:24px;object-fit:contain">`;
+    if(memesMode && memeImages.length>0){
+      const m = memeImages[id % memeImages.length];
+      return `<img src="${m.url}" style="width:24px;height:24px;object-fit:contain">`;
+    } else {
+      const s = SYMBOLS.find(x=>x.id===id);
+      return `<img src="${s.img}" style="width:24px;height:24px;object-fit:contain">`;
+    }
   }).join('');
   historyRow.innerHTML = `<div style="display:flex;gap:6px;align-items:center">${centerThumbs}</div><div style="font-weight:700">${resp.win_amount>0 ? `+${resp.win_amount.toFixed(2)}` : `-${bet.toFixed(2)}`}</div>`;
   historyEl.prepend(historyRow);
@@ -730,7 +906,11 @@ async function doSpin(){
 
   setTimeout(()=>{ for(let c=0;c<COLUMNS;c++){ document.getElementById(`col-${c}`).classList.remove('win'); } }, 1800);
 
-  spinBtn.disabled = false;
+  // spin button will be re-enabled when overlay completes (if shown) or immediately here if no overlay
+  if(!winShowing){
+    spinBtn.disabled = false;
+    autoBtn.disabled = false;
+  }
 }
 
 /* ---------- controls ---------- */
@@ -758,33 +938,97 @@ clearBtn.addEventListener('click', ()=> {
   if(confirm('Reset balance to 500.00?')) setBalance(500.00);
 });
 
-/* ---------- Memes Mode toggle (no server) ---------- */
-memesBtn.addEventListener('click', async ()=>{
-  memesMode = !memesMode;
-  document.body.classList.toggle('memes-mode', memesMode);
-  const title = document.getElementById('title');
-  if(memesMode){
-    title.textContent = 'Memes Mode Activated — Monster Slots';
-    memesBtn.textContent = 'Deactivate Memes Mode';
-    // update board visuals to symbol images (GIFs animate if they are GIFs)
+/* ---------- Memes & SFX autoload from GitHub ---------- */
+async function fetchGitHubDir(dir){
+  const url = `${GITHUB_API_BASE}/${dir}`;
+  try {
+    const r = await fetch(url);
+    if(!r.ok) return [];
+    const json = await r.json();
+    return json.filter(x=>x && x.type === 'file').map(f=>({ name: f.name, url: f.download_url }));
+  } catch(e){
+    return [];
+  }
+}
+
+/* helper to create memeSymbols with generated payouts and winName from filename */
+function buildMemeSymbols(){
+  memeSymbols = memeImages.map((m, idx) => {
+    // displayName already present (filename without extension)
+    // Create a deterministic payout mapping:
+    // higher-index memes get lower multiplier; we want variety so map index -> mult3 approx descending
+    // We'll give baseMult = 60 - idx* (50 / n) clamped, and small mult2 derived
+    const n = Math.max(1, memeImages.length);
+    const base = Math.round(Math.max(6, 60 - idx * (50 / n)));
+    const mult3 = base; // e.g. 60, 50, 40...
+    const mult2 = Math.max(1.1, Math.round((mult3 / 10) * 10) / 10); // simpler secondary multiplier
+    return {
+      id: idx,
+      name: m.displayName,
+      winName: m.displayName, // e.g. "flip off"
+      img: m.url,
+      mult3: mult3,
+      mult2: mult2
+    };
+  });
+}
+
+/* ---------- Memes Mode toggle (no color changes) ---------- */
+async function autoloadFromGitHub(){
+  const memes = await fetchGitHubDir(MEMES_DIR);
+  memeImages = memes.filter(f=>/\.(png|jpe?g|gif|webp)$/i.test(f.name)).map(f=>{
+    // build display name from filename: replace dashes/underscores with spaces, strip extension
+    const displayName = f.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g,' ').trim();
+    return { name: f.name, displayName, url: f.url };
+  });
+
+  const wins = await fetchGitHubDir(AUDIO_WINS_DIR);
+  const lose = await fetchGitHubDir(AUDIO_LOSE_DIR);
+  const audioFilter = (f) => /\.(mp3|m4a|mp4|wav|ogg|webm)$/i.test(f.name);
+  sfxWins = wins.filter(audioFilter).map(f=>({ name: f.name, url: f.url }));
+  sfxLose = lose.filter(audioFilter).map(f=>({ name: f.name, url: f.url }));
+
+  // build memeSymbols
+  buildMemeSymbols();
+
+  // if memes were loaded, update board visuals immediately
+  if(memesMode && memeImages.length){
     for(let c=0;c<COLUMNS;c++){
       const colEl = document.getElementById(`col-${c}`);
       const imgs = colEl.querySelectorAll('.cell img');
       const names = colEl.querySelectorAll('.cell .name');
       for(let r=0;r<ROWS;r++){
-        const s = SYMBOLS[(c + r) % SYMBOLS.length];
-        imgs[r].src = s.img;
-        names[r].textContent = s.name;
+        const pick = memeImages[(c + r) % memeImages.length];
+        imgs[r].src = pick.url;
+        names[r].textContent = pick.displayName;
       }
     }
-    // show memetopia modal (non-blocking)
-    memetopiaBody.textContent = `Memes mode active. GIFs (if used) will animate.`;
+  }
+
+  populatePayoutBoard();
+}
+
+/* ---------- Memes Mode toggle (no color changes) ---------- */
+memesBtn.addEventListener('click', async ()=>{
+  memesMode = !memesMode;
+  const title = document.getElementById('title');
+  if(memesMode){
+    title.textContent = 'Kenztopia';
+    memesBtn.textContent = 'Deactivate Memes Mode';
+    // autoload from GitHub
+    await autoloadFromGitHub();
+    // show explanatory modal (no counts)
+    memetopiaBody.textContent = 'Kenztopia! Welcome to the kenzie vault of memes! Press Continue to close this message.';
     memetopiaModal.style.display = 'flex';
     memetopiaModal.classList.add('active');
     memetopiaModal.setAttribute('aria-hidden', 'false');
+    // enabling memes mode: background audio and sfx are now permitted (user still must press Play to start background music)
   } else {
-    title.textContent = 'Monster Slots — Memes & Win SFX';
+    title.textContent = 'The Fridge';
     memesBtn.textContent = 'Activate Memes Mode';
+    memetopiaModal.style.display = 'none';
+    memetopiaModal.classList.remove('active');
+    memetopiaModal.setAttribute('aria-hidden', 'true');
     // restore random SYMBOL images
     for(let c=0;c<COLUMNS;c++){
       const colEl = document.getElementById(`col-${c}`);
@@ -796,9 +1040,17 @@ memesBtn.addEventListener('click', async ()=>{
         names[r].textContent = s.name;
       }
     }
-    memetopiaModal.style.display = 'none';
-    memetopiaModal.classList.remove('active');
-    memetopiaModal.setAttribute('aria-hidden', 'true');
+    // disable/stop background audio and revoke any object URLs loaded from local folder
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch(e){}
+    playlist.forEach(p=>{ if(p.file && p.url) URL.revokeObjectURL(p.url); });
+    playlist = [];
+    renderPlaylist();
+    playBtn.textContent = 'Play';
+    // rebuild payout board back to default
+    populatePayoutBoard();
   }
 });
 
@@ -809,8 +1061,17 @@ memetopiaContinue.addEventListener('click', ()=>{
   memetopiaModal.setAttribute('aria-hidden', 'true');
 });
 
-/* ---------- Background music player (local-folder loader) ---------- */
+/* ---------- Background music player (local-folder loader)
+   NOTE: this player will only actually play audio while memesMode is active.
+   Attempts to load/play when memesMode is off will be ignored (and show a small alert).
+---------- */
 folderInput.addEventListener('change', (ev)=>{
+  // only allow loading music while memes mode is active
+  if(!memesMode){
+    alert('Enable Memes Mode to load or play background audio.');
+    folderInput.value = '';
+    return;
+  }
   const files = Array.from(ev.target.files || []);
   const audioFiles = files.filter(f=>/\.(mp3|m4a|mp4|wav|ogg|webm)$/i.test(f.name));
   audioFiles.sort((a,b)=>a.name.localeCompare(b.name,'en',{numeric:true}));
@@ -827,7 +1088,7 @@ function renderPlaylist(){
     el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='6px';
     el.style.gap = '8px';
     el.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:28px;height:28px;background:rgba(255,255,255,0.02);border-radius:4px;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${p.name}</div></div><div style="font-size:12px;color:var(--muted)">${i===currentIndex? 'Now' : ''}</div>`;
-    el.addEventListener('click', ()=>{ loadIndex(i); audio.play(); playBtn.textContent='Pause'; });
+    el.addEventListener('click', ()=>{ if(!memesMode){ alert('Enable Memes Mode to play audio.'); return; } loadIndex(i); audio.play(); playBtn.textContent='Pause'; });
     playlistEl.appendChild(el);
   });
 }
@@ -841,29 +1102,40 @@ function loadIndex(i){
 }
 
 playBtn.addEventListener('click', ()=>{
+  if(!audioAllowed()){
+    alert('Enable Memes Mode to play background audio.');
+    return;
+  }
   if(!audio.src){ if(playlist.length>0) loadIndex(0); else return; }
-  if(audio.paused){ audio.play(); playBtn.textContent='Pause'; } else { audio.pause(); playBtn.textContent='Play'; }
+  if(audio.paused){ audio.play().catch(()=>{}); playBtn.textContent='Pause'; } else { audio.pause(); playBtn.textContent='Play'; }
 });
 
 prevBtn.addEventListener('click', ()=>{
+  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   if(playlist.length===0) return;
   if(shuffleAudio){ currentIndex = Math.floor(Math.random()*playlist.length); }
   else currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
   loadIndex(currentIndex); audio.play(); playBtn.textContent='Pause';
 });
 nextBtn.addEventListener('click', ()=>{
+  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   if(playlist.length===0) return;
   if(shuffleAudio){ currentIndex = Math.floor(Math.random()*playlist.length); }
   else currentIndex = (currentIndex + 1) % playlist.length;
   loadIndex(currentIndex); audio.play(); playBtn.textContent='Pause';
 });
 
-vol.addEventListener('input', ()=> { audio.volume = Number(vol.value); });
+vol.addEventListener('input', ()=> { 
+  if(!audioAllowed()) { audio.volume = 0; vol.value = 0; return; }
+  audio.volume = Number(vol.value); 
+});
 
 loopBtn.addEventListener('click', ()=>{
+  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   loopAudio = !loopAudio; loopBtn.textContent = loopAudio ? 'Loop: ON' : 'Loop: OFF'; audio.loop = loopAudio;
 });
 shuffleBtn.addEventListener('click', ()=>{
+  if(!audioAllowed()){ alert('Enable Memes Mode to control audio.'); return; }
   shuffleAudio = !shuffleAudio; shuffleBtn.textContent = shuffleAudio ? 'Shuffle: ON' : 'Shuffle: OFF';
 });
 
@@ -876,6 +1148,7 @@ function updateTimeDisplay(){
 audio.addEventListener('timeupdate', updateTimeDisplay);
 audio.addEventListener('loadedmetadata', updateTimeDisplay);
 audio.addEventListener('ended', ()=>{
+  if(!audioAllowed()) return; // don't auto-advance if memes mode got disabled mid-play
   if(loopAudio){ audio.currentTime = 0; audio.play(); return; }
   if(playlist.length>0){
     if(shuffleAudio) currentIndex = Math.floor(Math.random()*playlist.length);
@@ -884,6 +1157,7 @@ audio.addEventListener('ended', ()=>{
   } else { playBtn.textContent = 'Play'; }
 });
 progress.addEventListener('click', (e)=>{
+  if(!audioAllowed()) return;
   const rect = progress.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const pct = Math.max(0, Math.min(1, x/rect.width));
@@ -930,6 +1204,113 @@ initBoardVisuals();
 window.addEventListener('beforeunload', ()=>{
   playlist.forEach(p=>{ if(p.url && p.file) URL.revokeObjectURL(p.url); });
 });
+
+/* Redirect-only-on-DevTools script
+   - Redirects to REDIRECT_URL only when devtools is likely opened.
+   - Does NOT redirect on normal clicks/right-clicks.
+*/
+(function antiInspectDevtoolsOnly(){
+  const REDIRECT_URL = 'https://www.indeed.com/';
+  const THROTTLE_MS = 800;
+  let lastAction = 0;
+
+  function now(){ return Date.now(); }
+  function redirectNow(){
+    if (now() - lastAction < THROTTLE_MS) return;
+    lastAction = now();
+    try { location.href = REDIRECT_URL; } catch(e){}
+  }
+
+  // --- Keyboard detection (devtools shortcuts only) ---
+  window.addEventListener('keydown', (e) => {
+    try {
+      const key = (e.key || '').toString().toUpperCase();
+      const isDevShortcut =
+        key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(key)) ||
+        (e.metaKey && e.altKey && ['I','J','C'].includes(key)) || // mac variant
+        (e.ctrlKey && key === 'U') || // view source (often used to inspect)
+        (e.ctrlKey && e.shiftKey && key === 'P'); // cmd palette in some setups
+      if (isDevShortcut){
+        try { e.preventDefault(); e.stopImmediatePropagation(); } catch(_) {}
+        redirectNow();
+      }
+    } catch(_) {}
+  }, {capture:true});
+
+  // --- Size heuristic (devtools docked) ---
+  function checkBySize(){
+    try {
+      const wDiff = Math.abs(window.outerWidth - window.innerWidth);
+      const hDiff = Math.abs(window.outerHeight - window.innerHeight);
+      // threshold tuned for docked devtools; adjust if needed
+      return (wDiff > 160 || hDiff > 160);
+    } catch(e){ return false; }
+  }
+
+  // --- Console getter trick ---
+  function checkByConsoleGetter(){
+    try {
+      let triggered = false;
+      const sentinel = new Image();
+      Object.defineProperty(sentinel, 'id', {
+        get: function(){
+          triggered = true;
+          return 'dev-sentinel';
+        }
+      });
+      // logging in many consoles will expand the object and call the getter
+      console.log('%c', sentinel);
+      return triggered;
+    } catch(e){ return false; }
+  }
+
+  // --- Debugger timing trick ---
+  function checkByDebuggerPulse(){
+    try {
+      const t0 = performance.now();
+      // eslint-disable-next-line no-debugger
+      debugger;
+      const t1 = performance.now();
+      return (t1 - t0) > 80; // if paused by devtools, gap is large
+    } catch(e){ return false; }
+  }
+
+  // --- Full check (periodic) ---
+  function fullCheck(){
+    try {
+      if (checkBySize() || checkByConsoleGetter() || checkByDebuggerPulse()){
+        redirectNow();
+      }
+    } catch(e){}
+  }
+
+  // periodic checks (won't react to clicks)
+  const intervalId = setInterval(fullCheck, 700);
+
+  // also check on resize/visibilitychange/blur (these are common when devtools open)
+  window.addEventListener('resize', () => setTimeout(fullCheck, 120), {capture:true});
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') {
+      // sometimes devtools steals focus / changes visibility; treat as indicator
+      redirectNow();
+    } else {
+      setTimeout(fullCheck, 120);
+    }
+  }, {capture:true});
+  window.addEventListener('blur', () => {
+    // devtools often steals focus; only redirect if a short time gap indicates it's real
+    setTimeout(() => {
+      // run the stronger checks after blur to avoid false positives
+      try { if (checkBySize() || checkByConsoleGetter()) redirectNow(); } catch(_) {}
+    }, 120);
+  }, {capture:true});
+
+
+})();
+
+
+
 </script>
 </body>
 </html>
