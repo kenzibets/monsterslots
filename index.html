@@ -373,6 +373,80 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
 .kf-toast-item.show { transform: translateY(0); opacity: 1; }
 .kf-toast-item.hide { transform: translateY(8px); opacity: 0; }
 
+/* ========================
+ MOBILE SPECIFIC TWEAKS
+ ======================== */
+
+/* Hide unnecessary elements and stack layout on small screens.
+   Crucially: allow scrolling and move the live wins to bottom
+   with an easy toggle so it does not block the main board.
+*/
+#liveWinsToggle {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 21000;
+  display: none;
+  background: linear-gradient(180deg,#0cf04a,#08a132);
+  color: #04220b;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 900;
+  box-shadow: 0 10px 30px rgba(12,240,74,0.12);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (max-width:720px){
+  html,body{height:auto; overflow:auto}
+  .wrap{padding:12px}
+  .card{display:grid; grid-template-columns:1fr; width:calc(100% - 24px); padding:12px; gap:12px}
+  header{flex-direction:row;flex-wrap:wrap; gap:8px}
+  .header-left{width:100%; justify-content:space-between}
+  .board-area{order:1; width:100%;}
+  aside.info{order:3; width:100%;}
+  .board{min-height:240px; gap:8px; grid-template-columns: repeat(5, 1fr);}
+
+  /* Live wins becomes bottom centered and full-ish width on mobile */
+  #liveWinsBox {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 86px; /* keep above toggle and toast area */
+    transform: none;
+    width: calc(100% - 24px);
+    max-height: 38vh;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 10px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* Make the header compact */
+  #liveWinsBox .lw-title { font-size: 14px; }
+  #liveWinsBox .lw-sub { font-size: 12px; }
+
+  /* show toggle button */
+  #liveWinsToggle { display: block; }
+
+  /* allow board to be fully scrollable and not blocked */
+  .card, .wrap { overflow: visible; }
+
+  /* ensure toast still visible above live box */
+  #kf-toast { right: 14px; bottom: 82px; }
+
+  /* allow modal overlays to fit */
+  .modal { max-width: 96%; padding: 14px; }
+}
+
+/* hide live box when mobile-hidden class applied */
+#liveWinsBox.mobile-hidden { display: none !important; }
+
+/* ========================
+   END MOBILE
+   ======================== */
+
 </style>
 </head>
 <body>
@@ -554,6 +628,9 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
   </div>
 </div>
 
+<!-- Mobile toggle button for live wins (shown only on small screens) -->
+<button id="liveWinsToggle" aria-controls="liveWinsBox" aria-expanded="true" title="Toggle Live Payouts">LIVE</button>
+
 <!-- Sell Feet Pics modal -->
 <div id="sellFeetModal" class="modal-overlay" aria-hidden="true" style="display:none">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sellFeetTitle">
@@ -610,10 +687,39 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
     - Rainbet modal now uses display:flex when shown so it centers correctly.
     - All previous logic preserved.
     - REMOVED blinking inner dot on LIVE PAYOUTS indicator.
-    - ALL visual numbers now use abbreviated letters (K, M, B, T, Qa, Qi, Sx, Sp) for thousand+.
+    - ALL visual numbers now use abbreviated letters (K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc, Ud, Vg) for thousand+.
     - IMPORTANT: UI will NEVER fallback to user_id for display; uses 'Anon' instead.
     - When saving a nickname, a toast message "Nickname set to {nick}" is shown.
 */
+
+/* ---------------------------
+   USER ID helpers (canonicalization & validation)
+   --------------------------- */
+// place these helpers near the top so all scripts can use them
+function canonicalizeUserId(uid){
+  if(!uid) return '';
+  return String(uid).trim().toLowerCase();
+}
+const USERID_RE = /^[a-z0-9\-_]{3,64}$/;
+function isValidUserId(uid){
+  return USERID_RE.test(canonicalizeUserId(uid));
+}
+function ensureLocalUserId(){
+  try{
+    let uid = localStorage.getItem('kf_user_id') || '';
+    uid = canonicalizeUserId(uid);
+    if(!isValidUserId(uid)){
+      uid = 'u-' + Math.random().toString(36).slice(2,12);
+      uid = canonicalizeUserId(uid);
+    }
+    localStorage.setItem('kf_user_id', uid);
+    return uid;
+  }catch(e){
+    // fallback - generate but do not persist
+    return canonicalizeUserId('u-' + Math.random().toString(36).slice(2,12));
+  }
+}
+// ---------------------------
 
 /* ---------------------------
    NEW: Number abbreviation helpers
@@ -626,7 +732,8 @@ function abbreviateNumber(num){
   const sign = num < 0 ? -1 : 1;
   num = Math.abs(num);
 
-  const suffixes = ['', 'K','M','B','T','Qa','Qi','Sx','Sp'];
+  // Extended suffixes up past sextillion (Sx/Sp)
+  const suffixes = ['', 'K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Vg','Tg'];
   let idx = 0;
   while(num >= 1000 && idx < suffixes.length - 1){
     num = num / 1000;
@@ -656,7 +763,7 @@ function formatSignedAbbrev(v){
   return sign + abbreviateNumber(Math.abs(Number(v)));
 }
 
-// parse abbreviated string back to numeric (supports K,M,B,T, Qa, Qi, Sx, Sp)
+// parse abbreviated string back to numeric (supports K,M,B,T, Qa, Qi, Sx, Sp and beyond)
 function parseAbbreviated(str){
   if(!str && str !== 0) return 0;
   try{
@@ -683,7 +790,13 @@ function parseAbbreviated(str){
       'p': 1e18,
       'sx': 1e21,
       's': 1e21,
-      'sp': 1e24
+      'sp': 1e24,
+      'oc': 1e27,
+      'no': 1e30,
+      'dc': 1e33,
+      'ud': 1e36,
+      'vg': 1e39,
+      'tg': 1e42
     };
     let mult = 1;
     if(suffix){
@@ -762,16 +875,18 @@ const SYMBOLS = [
     {"id": 8, "name": "Monster F",   "img": symbolImages[8], "mult3": 15, "mult2": 2.5},
 ];
 
+// Stronger bias toward common (0..2) symbols to make wins occur less frequently.
+// Keeping high-value symbols far rarer.
 const WEIGHTED_SYMBOL_IDS = (
-  Array(40).fill(0)
-  .concat(Array(36).fill(1))
-  .concat(Array(30).fill(2))
-  .concat(Array(20).fill(3))
-  .concat(Array(16).fill(4))
-  .concat(Array(12).fill(5))
-  .concat(Array(3).fill(6))
-  .concat(Array(6).fill(7))
-  .concat(Array(10).fill(8))
+  Array(80).fill(0)
+  .concat(Array(50).fill(1))
+  .concat(Array(40).fill(2))
+  .concat(Array(18).fill(3))
+  .concat(Array(14).fill(4))
+  .concat(Array(8).fill(5))
+  .concat(Array(2).fill(6))
+  .concat(Array(3).fill(7))
+  .concat(Array(5).fill(8))
 );
 
 /* Board */
@@ -884,6 +999,7 @@ function populatePayoutBoard(){
       row.style.justifyContent = 'space-between';
       row.style.alignItems = 'center';
       row.style.padding = '6px 0';
+      row.style.alignItems = 'center';
       row.innerHTML = `
         <div style="display:flex;gap:12px;align-items:center;min-width:0">
           <img src="${s.img}" style="width:40px;height:40px;object-fit:contain">
@@ -1170,21 +1286,54 @@ function serverlessSpin(bet){
   let win_type = "none";
   let winning_symbol = null;
 
-  if(memesMode && memeSymbols.length && (new Set(center_ids)).size === COLUMNS){
+  // Detect potential max-win (distinct center across all columns) for both modes
+  const uniqueCenterCount = (new Set(center_ids)).size;
+  const potentialMaxWin = uniqueCenterCount === COLUMNS;
+
+  if(potentialMaxWin){
+    // compute an initial large multiplier (base) from symbol mult3 values (or meme equivalent)
+    if(memesMode && memeSymbols.length){
+      const involvedMults = center_ids.map(id => (memeSymbols.find(s=>s.id===id) || {mult3:5}).mult3 );
+      const avg = involvedMults.reduce((a,b)=>a+b,0)/involvedMults.length;
+      // base for maxwin is much larger now (super huge payouts)
+      payout_multiplier = Math.max( avg * 12, avg + 2000 );
+    } else {
+      const involvedMults = center_ids.map(id => {
+        const s = SYMBOLS.find(x=>x.id===id);
+        return s ? s.mult3 : 6;
+      });
+      const avg = involvedMults.reduce((a,b)=>a+b,0)/involvedMults.length;
+      payout_multiplier = Math.max( avg * 10, avg + 1500 );
+    }
     win_type = 'maxwin';
-    const involvedMults = center_ids.map(id => (memeSymbols.find(s=>s.id===id) || {mult3:5}).mult3 );
-    const avg = involvedMults.reduce((a,b)=>a+b,0)/involvedMults.length;
-    payout_multiplier = Math.max( avg * 1.8, avg + 200 );
-    winning_symbol = 'ALL MEMES';
+    winning_symbol = 'ALL DISTINCT';
+    // Enforce strict 5% keep chance for maxwin (user requested)
+    if(Math.random() > 0.05){
+      win_type = 'none';
+      payout_multiplier = 0;
+      winning_symbol = null;
+    } else {
+      // If it passes the 5% roll, amplify the multiplier heavily to create a super-huge payout
+      const bonusFactor = 20 + Math.random()*60; // 20x to 80x (very big)
+      payout_multiplier = Math.round(payout_multiplier * bonusFactor * 100) / 100;
+    }
   } else {
+    // Normal check for 3x / 2x (but made much rarer and larger when they pass)
     if(memesMode && memeSymbols.length){
       for(const [ridStr, cnt] of Object.entries(counts)){
         const rid = Number(ridStr);
         if(cnt >= 3){
           const sym = memeSymbols.find(s => s.id === rid);
-          payout_multiplier = sym.mult3;
-          win_type = "3x";
-          winning_symbol = sym.winName;
+          // very low chance to actually award (makes wins rarer)
+          const passProb = 0.06; // 6% chance to actually let it be counted
+          if(Math.random() <= passProb){
+            payout_multiplier = sym.mult3 * (6 + Math.random()*22); // big boost on pass
+            payout_multiplier = Math.round(payout_multiplier*100)/100;
+            win_type = "3x";
+            winning_symbol = sym.winName;
+          } else {
+            payout_multiplier = 0; win_type = 'none'; winning_symbol = null;
+          }
           break;
         }
       }
@@ -1193,21 +1342,36 @@ function serverlessSpin(bet){
           const rid = Number(ridStr);
           if(cnt === 2){
             const sym = memeSymbols.find(s => s.id === rid);
-            payout_multiplier = sym.mult2;
-            win_type = "2x";
-            winning_symbol = sym.winName;
+            const passProb = 0.28; // less rare than 3x but still less frequent
+            if(Math.random() <= passProb){
+              payout_multiplier = sym.mult2 * (2 + Math.random()*6); // mid boost
+              payout_multiplier = Math.round(payout_multiplier*100)/100;
+              win_type = "2x";
+              winning_symbol = sym.winName;
+            } else {
+              payout_multiplier = 0; win_type = 'none'; winning_symbol = null;
+            }
             break;
           }
         }
       }
     } else {
+      // Standard symbols path: check 3-of-a-kind then pair; but apply strict pass probabilities
       for(const [ridStr, cnt] of Object.entries(counts)){
         const rid = Number(ridStr);
         if(cnt >= 3){
           const sym = SYMBOLS.find(s => s.id === rid);
-          payout_multiplier = sym.mult3;
-          win_type = "3x";
-          winning_symbol = sym.name;
+          const passProb = 0.08; // ~8% chance to actually award 3x (much rarer)
+          if(Math.random() <= passProb){
+            // super-scale the payout for the rare occasion it happens
+            const base = (sym && sym.mult3) ? sym.mult3 : 8;
+            const scale = 8 + Math.random()*28; // big multiplier
+            payout_multiplier = Math.round(base * scale * 100)/100;
+            win_type = "3x";
+            winning_symbol = sym.name;
+          } else {
+            payout_multiplier = 0; win_type = 'none'; winning_symbol = null;
+          }
           break;
         }
       }
@@ -1216,9 +1380,16 @@ function serverlessSpin(bet){
           const rid = Number(ridStr);
           if(cnt === 2){
             const sym = SYMBOLS.find(s => s.id === rid);
-            payout_multiplier = sym.mult2;
-            win_type = "2x";
-            winning_symbol = sym.name;
+            const passProb = 0.28; // ~28% chance to award pair
+            if(Math.random() <= passProb){
+              const base = (sym && sym.mult2) ? sym.mult2 : 1.5;
+              const scale = 1.8 + Math.random()*4.5; // smaller scale than 3x, but still boosted
+              payout_multiplier = Math.round(base * scale * 100)/100;
+              win_type = "2x";
+              winning_symbol = sym.name;
+            } else {
+              payout_multiplier = 0; win_type = 'none'; winning_symbol = null;
+            }
             break;
           }
         }
@@ -1226,33 +1397,19 @@ function serverlessSpin(bet){
     }
   }
 
-  if(!memesMode && win_type === "2x" && center_ids.includes(6)) payout_multiplier *= 1.25;
+  // Extra safety: if we randomly decide no win after the above, ensure payout_multiplier is 0
+  if(win_type === 'none') payout_multiplier = 0;
 
-  if(payout_multiplier >= 25){
-    payout_multiplier = payout_multiplier * (0.78 + Math.random()*0.12);
-  } else if(payout_multiplier >= 12){
-    payout_multiplier = payout_multiplier * (0.86 + Math.random()*0.12);
-  }
-
-  if(memesMode && win_type !== 'none'){
-    let passProb = 0.6;
-    if(win_type === '2x') passProb = 0.60;
-    else if(win_type === '3x') passProb = 0.20;
-    else if(win_type === 'maxwin') passProb = 0.05;
-    const roll = Math.random();
-    if(roll > passProb){
-      win_type = 'none';
-      payout_multiplier = 0;
-      winning_symbol = null;
-    } else {
-      if(payout_multiplier > 50) payout_multiplier *= 0.9;
-    }
+  // Final small adjust to avoid runaway unrealistic multipliers for certain branches
+  if(payout_multiplier >= 25 && payout_multiplier < 1000){
+    // small dampening for mid-high multipliers
+    payout_multiplier = Math.round(payout_multiplier * (0.9 + Math.random()*0.16) * 100) / 100;
   }
 
   const win_amount = Math.round(bet * payout_multiplier * 100) / 100;
 
   let message = (win_type === "3x" ? "JACKPOT!" : (win_type === '2x' ? "Nice pair!" : "No win — try again."));
-  if(win_type === 'maxwin') message = 'MAX WIN — ALL DISTINCT MEMES!';
+  if(win_type === 'maxwin') message = 'MAX WIN — ALL DISTINCT!';
   if(memesMode && winning_symbol) message = (win_type === '3x' ? `JACKPOT — ${winning_symbol}` : (win_type === '2x' ? `Nice Pair — ${winning_symbol}` : message));
 
   return {
@@ -1360,7 +1517,7 @@ async function doSpin(){
 
   // update live-wins UI and post to server (non-blocking)
   try {
-    const localUid = localStorage.getItem('kf_user_id') || ('u-' + Math.random().toString(36).slice(2,12));
+    const localUid = ensureLocalUserId();
     const localNick = (localStorage.getItem('kf_nickname') || '').slice(0,40);
     const result = resp.win_amount > 0 ? 'win' : 'lose';
     const amtForServer = resp.win_amount > 0 ? resp.win_amount : bet;
@@ -1377,7 +1534,7 @@ async function doSpin(){
         await fetch(`/api/user/${encodeURIComponent(localUid)}/trade`, {
           method: 'POST',
           headers: {'content-type': 'application/json'},
-          body: JSON.stringify({ result: result, amount: amtForServer })
+          body: JSON.stringify({ result: result, amount: amtForServer, nickname: (localNick || undefined) })
         });
       }catch(e){}
     })();
@@ -1408,18 +1565,19 @@ autoBtn.addEventListener('click', async ()=>{
 });
 
 maxBtn.addEventListener('click', ()=> {
-  const b = Math.max(1, Math.floor(balance * 0.1));
-  betInput.value = b;
+  // Now set MAX to the *full* available balance (supports cents)
+  try{
+    const full = Math.floor((window.balance || 0) * 100) / 100;
+    betInput.value = Math.max(1, full);
+  }catch(e){
+    betInput.value = Math.max(1, Math.floor((window.balance || 0)));
+  }
 });
 
 /* ---------- SELL FEET PICS feature ---------- */
 function _getUserIdForSell(){
-  let uid = localStorage.getItem('kf_user_id');
-  if(!uid){
-    uid = 'u-' + Math.random().toString(36).slice(2,12);
-    localStorage.setItem('kf_user_id', uid);
-  }
-  return uid;
+  // unified: always use canonical local id
+  return ensureLocalUserId();
 }
 function _getSellKey(uid){ return `sellFeet_timestamps_${uid}`; }
 function _readSellTimestamps(uid){
@@ -1905,13 +2063,22 @@ window.addEventListener('keydown', (e) => {
       if(!_canUseCheat(uid)){
         const msLeft = _msLeftForCheat(uid);
         const pretty = _hoursMinutesFromMs(msLeft);
-        alert(`Cheat is on cooldown. Try again in ${pretty.hours}h ${pretty.minutes}m.`);
+        // use non-blocking toast for cooldown message
+        showToast(`Cheat on cooldown. Try again in ${pretty.hours}h ${pretty.minutes}m.`);
         return;
       }
-      setBalance(5000.00);
-      try{ localStorage.setItem('kf_balance', String(5000.00)); }catch(e){}
-      _writeCheatTs(uid, Date.now());
-      alert('Cheat activated: +' + formatCurrency(5000) + ' (one-hour cooldown). Use responsibly.');
+      // give the user +20k (additive)
+      try{
+        const addAmount = 20000;
+        setBalance((window.balance || 0) + addAmount);
+        try{ localStorage.setItem('kf_balance', String(window.balance)); }catch(e){}
+        _writeCheatTs(uid, Date.now());
+        // show a nice custom toast instead of alert
+        showToast(`Cheat activated: +${formatCurrency(20000)} — enjoy!`);
+      }catch(e){
+        console.warn('cheat apply failed', e);
+        showToast('Cheat failed to apply.');
+      }
     }
   }catch(e){}
 });
@@ -2074,15 +2241,15 @@ startLiveWinsPolling();
 async function sendTradeToServer(userId, result, amount){
   try{
     await fetch(`/api/user/${encodeURIComponent(userId)}/trade`, {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
+      method:'POST',
+      headers:{'content-type':'application/json'},
       body: JSON.stringify({ result, amount })
     });
   }catch(e){}
 }
 
 /* ---------------------------
-   LEADERBOARD modal + nickname prompt
+   LEADERBOARD modal + NICKNAME PROMPT
    - When saving a nickname, display: "Nickname set to {nick}"
    - Never display user_id as nickname (use "Anon" if none)
 --------------------------- */
@@ -2115,7 +2282,7 @@ async function sendTradeToServer(userId, result, amount){
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div class="muted">Top 100 balances</div>
           <div style="display:flex;gap:8px">
-            <input id="kf-nickname-main" type="text" placeholder="Enter nickname (max 40)" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+            <input id="kf-nickname-main" maxlength="40" type="text" placeholder="Enter nickname (max 40)" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
             <button id="kf-save-nick-main" class="btn" type="button">Save Nick</button>
             <button id="kf-refresh-main" class="small" type="button">Refresh</button>
           </div>
@@ -2157,7 +2324,7 @@ async function sendTradeToServer(userId, result, amount){
     <h3 id="kf-nick-title" style="color:var(--accent-green);margin:0 0 8px 0">Pick a nickname</h3>
     <p class="muted" style="margin:0 0 12px 0">This will be shown on the leaderboard. You will only be asked once.</p>
     <div style="display:flex;gap:8px">
-      <input id="kf-nick-input" type="text" placeholder="Nickname" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+      <input id="kf-nick-input" maxlength="40" type="text" placeholder="Nickname" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
       <button id="kf-nick-save" class="btn" type="button">Save</button>
     </div>
     <div style="margin-top:12px"><button id="kf-nick-skip" class="small" type="button">Skip (ask me later)</button></div>
@@ -2194,11 +2361,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const nickModalSkip = document.getElementById('kf-nick-skip');
 
   // identity
-  let userId = localStorage.getItem('kf_user_id');
-  if(!userId){
-    userId = 'u-' + Math.random().toString(36).slice(2,12);
-    localStorage.setItem('kf_user_id', userId);
-  }
+  let userId = ensureLocalUserId();
   userIdEl.textContent = userId;
 
   let nickname = (localStorage.getItem('kf_nickname') || '').slice(0,MAX_NICK_LEN);
@@ -2339,12 +2502,32 @@ document.addEventListener('DOMContentLoaded', function(){
     lastSyncMain.textContent = new Date().toLocaleTimeString();
   }
 
+  // Replace saveUserState with canonicalized ID and improved feedback
   async function saveUserState(nick, bal){
     const payload = {};
     if(nick !== undefined) payload.nickname = (nick||'').slice(0,MAX_NICK_LEN);
     if(bal !== undefined) payload.balance = Number(bal);
-    const res = await apiPost(`/user/${encodeURIComponent(userId)}`, payload);
-    return res;
+
+    const uid = ensureLocalUserId();
+    try{
+      const res = await fetch(`${API_BASE}/user/${encodeURIComponent(uid)}`, {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json().catch(()=>null);
+      if(!res.ok){
+        const msg = (json && (json.detail || json.message)) || `Server error ${res.status}`;
+        showToast(`Failed to save: ${msg}`);
+        return null;
+      }
+      if(json && json.status === 'created') showToast('Account created');
+      else showToast('Saved');
+      return json;
+    }catch(e){
+      showToast('Network error saving user');
+      return null;
+    }
   }
 
   // Wrap setBalance to save on server & localStorage (non-blocking)
@@ -2519,6 +2702,49 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){
     console.warn('rainbet wiring failed', e);
   }
+})();
+</script>
+
+<!-- Mobile live wins toggle wiring -->
+<script>
+(function(){
+  try{
+    const toggle = document.getElementById('liveWinsToggle');
+    const liveBox = document.getElementById('liveWinsBox');
+    if(!toggle || !liveBox) return;
+    let visible = true;
+    // If screen is small, default to hidden if content likely blocking
+    function updateInitialState(){
+      if(window.innerWidth <= 720){
+        // hide by default on very small screens so it doesn't block
+        visible = false;
+        liveBox.classList.add('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'false');
+      } else {
+        visible = true;
+        liveBox.classList.remove('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    }
+    updateInitialState();
+    window.addEventListener('resize', updateInitialState);
+
+    toggle.addEventListener('click', function(e){
+      e && e.preventDefault && e.preventDefault();
+      visible = !visible;
+      if(visible){
+        liveBox.classList.remove('mobile-hidden');
+        toggle.textContent = 'HIDE';
+        toggle.setAttribute('aria-expanded', 'true');
+      } else {
+        liveBox.classList.add('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }catch(e){ console.warn('live toggle wiring failed', e); }
 })();
 </script>
 
