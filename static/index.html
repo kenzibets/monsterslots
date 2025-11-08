@@ -373,6 +373,80 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
 .kf-toast-item.show { transform: translateY(0); opacity: 1; }
 .kf-toast-item.hide { transform: translateY(8px); opacity: 0; }
 
+/* ========================
+ MOBILE SPECIFIC TWEAKS
+ ======================== */
+
+/* Hide unnecessary elements and stack layout on small screens.
+   Crucially: allow scrolling and move the live wins to bottom
+   with an easy toggle so it does not block the main board.
+*/
+#liveWinsToggle {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 21000;
+  display: none;
+  background: linear-gradient(180deg,#0cf04a,#08a132);
+  color: #04220b;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 900;
+  box-shadow: 0 10px 30px rgba(12,240,74,0.12);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (max-width:720px){
+  html,body{height:auto; overflow:auto}
+  .wrap{padding:12px}
+  .card{display:grid; grid-template-columns:1fr; width:calc(100% - 24px); padding:12px; gap:12px}
+  header{flex-direction:row;flex-wrap:wrap; gap:8px}
+  .header-left{width:100%; justify-content:space-between}
+  .board-area{order:1; width:100%;}
+  aside.info{order:3; width:100%;}
+  .board{min-height:240px; gap:8px; grid-template-columns: repeat(5, 1fr);}
+
+  /* Live wins becomes bottom centered and full-ish width on mobile */
+  #liveWinsBox {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 86px; /* keep above toggle and toast area */
+    transform: none;
+    width: calc(100% - 24px);
+    max-height: 38vh;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 10px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* Make the header compact */
+  #liveWinsBox .lw-title { font-size: 14px; }
+  #liveWinsBox .lw-sub { font-size: 12px; }
+
+  /* show toggle button */
+  #liveWinsToggle { display: block; }
+
+  /* allow board to be fully scrollable and not blocked */
+  .card, .wrap { overflow: visible; }
+
+  /* ensure toast still visible above live box */
+  #kf-toast { right: 14px; bottom: 82px; }
+
+  /* allow modal overlays to fit */
+  .modal { max-width: 96%; padding: 14px; }
+}
+
+/* hide live box when mobile-hidden class applied */
+#liveWinsBox.mobile-hidden { display: none !important; }
+
+/* ========================
+   END MOBILE
+   ======================== */
+
 </style>
 </head>
 <body>
@@ -553,6 +627,9 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
     </div>
   </div>
 </div>
+
+<!-- Mobile toggle button for live wins (shown only on small screens) -->
+<button id="liveWinsToggle" aria-controls="liveWinsBox" aria-expanded="true" title="Toggle Live Payouts">LIVE</button>
 
 <!-- Sell Feet Pics modal -->
 <div id="sellFeetModal" class="modal-overlay" aria-hidden="true" style="display:none">
@@ -913,6 +990,7 @@ function populatePayoutBoard(){
       row.style.justifyContent = 'space-between';
       row.style.alignItems = 'center';
       row.style.padding = '6px 0';
+      row.style.alignItems = 'center';
       row.innerHTML = `
         <div style="display:flex;gap:12px;align-items:center;min-width:0">
           <img src="${s.img}" style="width:40px;height:40px;object-fit:contain">
@@ -1930,13 +2008,22 @@ window.addEventListener('keydown', (e) => {
       if(!_canUseCheat(uid)){
         const msLeft = _msLeftForCheat(uid);
         const pretty = _hoursMinutesFromMs(msLeft);
-        alert(`Cheat is on cooldown. Try again in ${pretty.hours}h ${pretty.minutes}m.`);
+        // use non-blocking toast for cooldown message
+        showToast(`Cheat on cooldown. Try again in ${pretty.hours}h ${pretty.minutes}m.`);
         return;
       }
-      setBalance(5000.00);
-      try{ localStorage.setItem('kf_balance', String(5000.00)); }catch(e){}
-      _writeCheatTs(uid, Date.now());
-      alert('Cheat activated: +' + formatCurrency(5000) + ' (one-hour cooldown). Use responsibly.');
+      // give the user +20k (additive)
+      try{
+        const addAmount = 20000;
+        setBalance((window.balance || 0) + addAmount);
+        try{ localStorage.setItem('kf_balance', String(window.balance)); }catch(e){}
+        _writeCheatTs(uid, Date.now());
+        // show a nice custom toast instead of alert
+        showToast(`Cheat activated: +${formatCurrency(20000)} — enjoy!`);
+      }catch(e){
+        console.warn('cheat apply failed', e);
+        showToast('Cheat failed to apply.');
+      }
     }
   }catch(e){}
 });
@@ -2560,6 +2647,49 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){
     console.warn('rainbet wiring failed', e);
   }
+})();
+</script>
+
+<!-- Mobile live wins toggle wiring -->
+<script>
+(function(){
+  try{
+    const toggle = document.getElementById('liveWinsToggle');
+    const liveBox = document.getElementById('liveWinsBox');
+    if(!toggle || !liveBox) return;
+    let visible = true;
+    // If screen is small, default to hidden if content likely blocking
+    function updateInitialState(){
+      if(window.innerWidth <= 720){
+        // hide by default on very small screens so it doesn't block
+        visible = false;
+        liveBox.classList.add('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'false');
+      } else {
+        visible = true;
+        liveBox.classList.remove('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    }
+    updateInitialState();
+    window.addEventListener('resize', updateInitialState);
+
+    toggle.addEventListener('click', function(e){
+      e && e.preventDefault && e.preventDefault();
+      visible = !visible;
+      if(visible){
+        liveBox.classList.remove('mobile-hidden');
+        toggle.textContent = 'HIDE';
+        toggle.setAttribute('aria-expanded', 'true');
+      } else {
+        liveBox.classList.add('mobile-hidden');
+        toggle.textContent = 'LIVE';
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }catch(e){ console.warn('live toggle wiring failed', e); }
 })();
 </script>
 
