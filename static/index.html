@@ -2211,19 +2211,11 @@ window.addEventListener('keydown', (e) => {
   }catch(e){}
 });
 
-/* ============= CASE MODE (CSGO-style case opening) =============
-   Add this script near your other control wiring.
-   Dependencies: SYMBOLS, memeSymbols, setBalance, formatCurrency, abbreviateNumber, burstAt, cameraShake
-*/
-
-
-/* Full case-modal IIFE (complete) — paste this whole block to replace your existing case-modal IIFE.
-   It includes meme-mode autoload, carousel, single/multi open, and the full battle simulation.
-*/
-/* Full case-modal IIFE (complete) — updated so regular "monster" case openings lose more often than they win.
+/* Full case-modal IIFE (complete) — updated so BOTH "monster" and "meme" case openings lose far more often than they win.
    Paste this whole block to replace your existing case-modal IIFE.
-   Key change: inside openSingleCase_internal() there's now an extra win-probability gate for 'monster' mode
+   Key change: inside openSingleCase_internal() there's now an extra win-probability gate for BOTH modes
    which makes most drops pay out $0 (loss) unless a random roll passes a relatively low threshold.
+   Meme cases are even harder to win than monster cases, but wins remain possible (rare).
 */
 (function(){
   const caseBtn = document.getElementById('caseBtn');
@@ -2408,35 +2400,50 @@ window.addEventListener('keydown', (e) => {
     if(chosen.rarity <= 3) payoutMult = Math.round((payoutMult * (8 + Math.random()*40)) * 100) / 100;
     let payout = Math.round(bet * payoutMult * 100) / 100;
 
-    /* ---------- NEW: force MONSTER case to lose more often ----------
-       For caseMode === 'monster' we apply a "win gate" probability so that
-       most drops result in payout = 0 (loss). Rare items get a higher chance
-       to pay out; common items mostly result in no payout.
-       This preserves the visual 'drop' but makes wins less frequent.
+    /* ---------- NEW: force BOTH MONSTER and MEME cases to be hard to win ----------
+       We apply a "win gate" probability so that most drops result in payout = 0 (loss).
+       Meme cases are set to be even harder to win than monster cases. Rare items get a
+       higher chance to pay out; common items mostly result in no payout. Wins that do
+       occur are dampened to keep overall payouts modest.
     */
-    if(caseMode === 'monster'){
-      // base win probability for a normal/common drop
-      let baseWinProb = 0.16; // ~16% chance to actually pay out
-      // bump probability for rare items (rarity small -> rarer)
-      if(chosen.rarity <= 3) baseWinProb = 0.55;    // rare special items ~55% chance
-      else if(chosen.rarity <= 8) baseWinProb = 0.28; // uncommon ~28%
-      else if(chosen.mult3 >= 12) baseWinProb = 0.22; // slightly better if mult3 high
-      // Further reduce overall payout size when wins occur (house edge)
+    if(caseMode === 'monster' || caseMode === 'meme'){
+      // base win probability defaults
+      let baseWinProb = (caseMode === 'monster') ? 0.16 : 0.12; // meme slightly rarer wins
+      // bump probability for rare items (lower rarity value => rarer)
+      if(chosen.rarity <= 3) baseWinProb = (caseMode === 'monster') ? 0.55 : 0.35;    // very rare items: monster ~55%, meme ~35%
+      else if(chosen.rarity <= 8) baseWinProb = (caseMode === 'monster') ? 0.28 : 0.18; // uncommon
+      else if(chosen.mult3 >= 12) baseWinProb = (caseMode === 'monster') ? 0.22 : 0.14; // slightly better if mult3 is high
+
+      // tiny global rare-roll uplift chance (so every now and then meme also pays out bigger)
+      if(Math.random() < 0.005) baseWinProb = Math.min(0.95, baseWinProb + 0.18);
+
       const roll = Math.random();
       if(roll > baseWinProb){
-        // treat as a loss: zero payout
+        // treat as a loss: zero payout (you still see the visual drop)
         payout = 0;
       } else {
-        // it's a 'win' — but apply a dampening factor to keep wins modest
-        // Rare items keep more (bigger fraction), commons get heavily reduced
-        let keepFactor = 0.55 + Math.random()*0.35; // 0.55–0.9
-        if(chosen.rarity > 20) keepFactor = 0.45 + Math.random()*0.3; // common: 0.45–0.75
-        if(chosen.rarity > 60) keepFactor = 0.30 + Math.random()*0.25; // very common: 0.30–0.55
-        // For safety clamp
-        keepFactor = Math.max(0.2, Math.min(0.95, keepFactor));
+        // it's a 'win' — but apply a dampening factor to keep wins modest and controlled
+        // Meme wins receive slightly lower keep factor on average to keep meme cases rare and small
+        let keepFactor;
+        if(caseMode === 'monster'){
+          keepFactor = 0.55 + Math.random()*0.35; // 0.55–0.9
+        } else {
+          keepFactor = 0.45 + Math.random()*0.35; // 0.45–0.8 (meme keeps are smaller on average)
+        }
+
+        // adjust by rarity (commons keep less)
+        if(chosen.rarity > 20) keepFactor = (keepFactor * 0.85) - (Math.random()*0.2);
+        if(chosen.rarity > 60) keepFactor = (keepFactor * 0.65) - (Math.random()*0.15);
+
+        // clamp to sensible bounds
+        keepFactor = Math.max(0.15, Math.min(0.95, keepFactor));
         payout = Math.round(payout * keepFactor * 100) / 100;
-        // Occasionally (small chance) reduce even further to create many tiny wins
+
+        // Occasionally (small chance) shrink further to create many tiny wins
         if(Math.random() < 0.12) payout = Math.round(payout * (0.18 + Math.random()*0.42) * 100) / 100;
+
+        // Extra safeguard: if payout ends up equal to bet (or very tiny), make it slightly smaller to preserve house edge
+        if(payout <= bet * 0.05) payout = 0; // very tiny wins become losses to keep frequency low
       }
     }
 
@@ -2560,7 +2567,7 @@ window.addEventListener('keydown', (e) => {
       const pool = (typeof buildCasePool === 'function') ? buildCasePool() : [];
       // players: user + 4 bots
       const players = [{ id:'user', name: (localStorage.getItem('kf_nickname') || 'You'), chosenName:null, value:0, previewImg:null, effective:0 }];
-      const BOT_NAMES = ['Ruth','Rudy','Kenzie','Alex'];
+      const BOT_NAMES = ['Rook','Fiz','Nova','Hexa'];
       for(let i=0;i<4;i++) players.push({ id:'bot', name: BOT_NAMES[i] || ('Bot'+(i+1)), chosenName:null, value:0, previewImg:null, effective:0 });
 
       // initial blank render
