@@ -677,7 +677,17 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
   </div>
 </div>
 
+
+</style>
+
 <!-- Live Wins Box (fixed middle-right) -->
+<style>
+/* Hide live wins box on touch devices / small screens (mobile & iPad) */
+@media (hover: none) and (pointer: coarse), (max-width:900px) {
+  #liveWinsBox { display: none !important; }
+}
+</style>
+
 <div id="liveWinsBox" aria-live="polite" aria-atomic="true" role="region" title="Live payouts">
   <div class="lw-header">
     <div class="lw-live-dot" aria-hidden="true"></div>
@@ -834,6 +844,43 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
    Adds temporary z-index lowering when case modal is opened, and restores on close.
    Insert this inside the same IIFE where caseModal / caseBtn / caseCloseBtn are defined.
 */
+
+(function(){
+  function isMobileOrIpad(){
+    try{
+      const ua = navigator.userAgent || '';
+      // mobile tokens + iPad + Tablet
+      const mobileUA = /Mobi|Android|iPhone|iPad|Tablet/i.test(ua);
+      const touchCapable = (navigator.maxTouchPoints && navigator.maxTouchPoints > 1) || ('ontouchstart' in window);
+      return mobileUA || touchCapable;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function disableLiveWins(){
+    const el = document.getElementById('liveWinsBox');
+    if(el){
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden','true');
+    }
+    // Stop any running polling/interval if the main script set it
+    try {
+      if (typeof stopLiveWinsPolling === 'function') stopLiveWinsPolling();
+    } catch(e){}
+    try { if(window._lw_polling){ clearInterval(window._lw_polling); window._lw_polling = null; } } catch(e){}
+    // Prevent future starts (monkey-patch)
+    try { window.startLiveWinsPolling = function(){ /* disabled on mobile/ipad */ }; } catch(e){}
+    try { window.fetchLiveWinsFromServer = function(){ return Promise.resolve(null); }; } catch(e){}
+  }
+
+  window.addEventListener('load', function(){
+    if(isMobileOrIpad()){
+      disableLiveWins();
+    }
+  }, { once: true });
+})();
+
 
 (function(){
   // store previous custom z (if any) so we can restore
