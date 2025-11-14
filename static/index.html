@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>Kenzies Fridge</title>
 <meta name="description" content="Welcome to Kenzies fridge!">
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" /> 
 
 <!-- Open Graph / Social -->
 <meta property="og:title" content="Kenzies Fridge">
@@ -563,7 +563,8 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
           </a>
         </div>
 
-        <!-- Moved Leaderboard button here (left of slot area) -->
+
+        <button id="signinBtn" class="small" type="button">Sign In</button>
         <button id="leaderboardBtn" class="small" type="button">LEADERBOARD</button>
         <!-- Rainbet button requested (opens animated message) -->
         <button id="rainbetBtn" title="Rainbet — use code shawty" type="button">
@@ -574,10 +575,49 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
 
       <!-- right side simplified -->
       <div style="text-align:right">
-        <!-- kept empty to avoid overlap with slot -->
+        <div id="userArea" style="display:flex;align-items:center;gap:10px"></div>
       </div>
     </header>
+<!-- AUTH (login / register) modal -->
+<div id="kf-auth-modal" class="modal-overlay" aria-hidden="true" style="display:none">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="kf-auth-title" style="max-width:520px">
+    <h3 id="kf-auth-title" style="color:var(--accent-green);margin:0 0 8px 0">Welcome — please sign in</h3>
 
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="kf-auth-tab-login" class="small" type="button" aria-pressed="true">Login</button>
+      <button id="kf-auth-tab-register" class="small" type="button" aria-pressed="false">Register</button>
+    </div>
+
+    <div id="kf-auth-forms">
+      <!-- LOGIN form -->
+      <div id="kf-auth-login" style="display:block">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="kf-login-username" type="text" placeholder="Username" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+          <input id="kf-login-password" type="password" placeholder="Password" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="kf-login-btn" class="btn" type="button">Login</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTER form -->
+      <div id="kf-auth-register" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="kf-reg-username" type="text" placeholder="Choose a username" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+          <input id="kf-reg-password" type="password" placeholder="Choose a password (min 6)" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+          <input id="kf-reg-nickname" type="text" placeholder="Display nickname (optional)" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="kf-register-btn" class="btn" type="button">Register & Login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;justify-content:center;gap:8px">
+      <button id="kf-auth-logout-hidden" class="small" style="display:none">Logout</button>
+    </div>
+  </div>
+</div>
     <!-- LEFT: slot board -->
     <div class="board-area" id="boardArea">
       <div class="controls">
@@ -816,6 +856,303 @@ input[type=number]{background:transparent;border:1px solid rgba(255,255,255,0.04
     </div>
   </div>
 </div>
+
+<!-- AUTH modal (login / register) -->
+<div id="authModal" class="modal-overlay" aria-hidden="true" style="display:none">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle" style="max-width:420px">
+    <h2 id="authTitle" style="color:var(--accent-green);margin:0 0 8px 0">Sign in / Register</h2>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="authTabLogin" class="small" type="button">Login</button>
+      <button id="authTabRegister" class="small" type="button">Register</button>
+    </div>
+
+    <div id="authForms">
+      <!-- LOGIN -->
+      <div id="authLogin" style="display:none">
+        <label class="muted">Username</label>
+        <input id="auth_login_username" type="text" placeholder="username" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);margin-bottom:8px">
+
+        <label class="muted">Password</label>
+        <input id="auth_login_password" type="password" placeholder="password" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);margin-bottom:8px">
+
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input id="auth_login_remember" type="checkbox"> Remember me
+        </label>
+
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+          <button id="auth_login_btn" class="btn" type="button">Sign In</button>
+          <button id="auth_close_btn" class="small" type="button">Close</button>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="authRegister" style="display:none">
+        <label class="muted">Username</label>
+        <input id="auth_reg_username" type="text" placeholder="username" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);margin-bottom:8px">
+
+        <label class="muted">Password (min 6 chars)</label>
+        <input id="auth_reg_password" type="password" placeholder="password" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);margin-bottom:8px">
+
+        <label class="muted">Nickname (optional)</label>
+        <input id="auth_reg_nickname" type="text" placeholder="nickname" style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);margin-bottom:8px">
+
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input id="auth_reg_remember" type="checkbox"> Remember me
+        </label>
+
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+          <button id="auth_reg_btn" class="btn" type="button">Register</button>
+          <button id="auth_reg_close" class="small" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="auth_msg" style="margin-top:12px;color:#ffb3b3;display:none"></div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  // Helper to get/store token (localStorage if remembered, sessionStorage if not)
+  function getStoredToken(){
+    return sessionStorage.getItem('kf_token') || localStorage.getItem('kf_token') || null;
+  }
+  function storeToken(token, remember){
+    if(!token) { sessionStorage.removeItem('kf_token'); localStorage.removeItem('kf_token'); return; }
+    if(remember) {
+      localStorage.setItem('kf_token', token);
+      sessionStorage.removeItem('kf_token');
+    } else {
+      sessionStorage.setItem('kf_token', token);
+      localStorage.removeItem('kf_token');
+    }
+  }
+  function clearToken(){
+    sessionStorage.removeItem('kf_token');
+    localStorage.removeItem('kf_token');
+    localStorage.removeItem('kf_username');
+    localStorage.removeItem('kf_nickname');
+  }
+
+  // monkey-patch fetch to include Authorization automatically (safe: only adds header)
+  (function(){
+    if(window.__kf_fetch_patched) return;
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = function(resource, init){
+      init = init || {};
+      init.headers = Object.assign({}, init.headers || {});
+      const token = getStoredToken();
+      if(token){
+        init.headers['Authorization'] = 'Bearer ' + token;
+      }
+      return _origFetch(resource, init);
+    };
+    window.__kf_fetch_patched = true;
+  })();
+
+  // UI refs
+  const signinBtn = document.getElementById('signinBtn');
+  const authModal = document.getElementById('authModal');
+  const authLogin = document.getElementById('authLogin');
+  const authRegister = document.getElementById('authRegister');
+  const tabLogin = document.getElementById('authTabLogin');
+  const tabRegister = document.getElementById('authTabRegister');
+  const authMsg = document.getElementById('auth_msg');
+
+  function showAuthModal(mode='login'){
+    if(!authModal) return;
+    authModal.style.display = 'flex';
+    authModal.classList.add('active');
+    authModal.setAttribute('aria-hidden','false');
+    if(mode === 'register'){
+      authLogin.style.display = 'none';
+      authRegister.style.display = 'block';
+    } else {
+      authLogin.style.display = 'block';
+      authRegister.style.display = 'none';
+    }
+    authMsg.style.display = 'none';
+  }
+  function hideAuthModal(){
+    if(!authModal) return;
+    authModal.classList.remove('active');
+    authModal.style.display = 'none';
+    authModal.setAttribute('aria-hidden','true');
+  }
+
+  // Set login/register tab handlers
+  if(tabLogin) tabLogin.addEventListener('click', ()=> showAuthModal('login'));
+  if(tabRegister) tabRegister.addEventListener('click', ()=> showAuthModal('register'));
+  const authClose = document.getElementById('auth_close_btn');
+  const authRegClose = document.getElementById('auth_reg_close');
+  if(authClose) authClose.addEventListener('click', hideAuthModal);
+  if(authRegClose) authRegClose.addEventListener('click', hideAuthModal);
+
+  // sign in button control
+  function updateSigninButtonText(){
+    const nick = localStorage.getItem('kf_nickname') || sessionStorage.getItem('kf_nickname') || '';
+    if(signinBtn){
+      signinBtn.textContent = nick ? nick : 'Sign In';
+    }
+  }
+
+  // on first load, try to auto-validate token & fetch current username -> nickname
+  async function tryRestoreSession(){
+    const token = getStoredToken();
+    if(!token) {
+      // show modal to new user immediately
+      showAuthModal('login');
+      return;
+    }
+    // We need a username to fetch /api/user/<username> — but backend issues username in login/register responses.
+    // If username stored locally, fetch the user record to obtain nickname.
+    const storedName = localStorage.getItem('kf_username') || sessionStorage.getItem('kf_username');
+    if(storedName){
+      try {
+        const r = await fetch(`/api/user/${encodeURIComponent(storedName)}`);
+        if(r.ok){
+          const json = await r.json();
+          const nick = (json.nickname || '').slice(0,40);
+          if(nick) {
+            localStorage.setItem('kf_nickname', nick);
+            sessionStorage.setItem('kf_nickname', nick);
+          }
+          updateSigninButtonText();
+          return;
+        }
+      } catch(e){ /* ignore */ }
+    }
+    // If we get here, token exists but no username or fetch failed; still set Sign-in to "Sign In" and show modal if needed
+    updateSigninButtonText();
+  }
+
+  // wire login and register buttons
+  const loginBtn = document.getElementById('auth_login_btn');
+  const regBtn = document.getElementById('auth_reg_btn');
+
+  async function showError(msg){
+    if(!authMsg) return;
+    authMsg.style.display = 'block';
+    authMsg.style.color = '#ffb3b3';
+    authMsg.textContent = msg;
+  }
+
+  if(loginBtn){
+    loginBtn.addEventListener('click', async function(){
+      const username = (document.getElementById('auth_login_username').value || '').trim();
+      const password = (document.getElementById('auth_login_password').value || '');
+      const remember = document.getElementById('auth_login_remember').checked;
+      if(!username || !password) { showError('username and password required'); return; }
+      loginBtn.disabled = true;
+      try {
+        const r = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'content-type': 'application/json'},
+          body: JSON.stringify({ username, password })
+        });
+        if(!r.ok){
+          const err = await r.json().catch(()=>({ detail:'Login failed' }));
+          showError(err.detail || 'Login failed');
+          return;
+        }
+        const j = await r.json();
+        const token = j.token;
+        storeToken(token, remember);
+        // save username & nickname locally for UI
+        localStorage.setItem(remember? 'kf_username' : 'kf_username', j.username);
+        sessionStorage.setItem('kf_username', j.username);
+        // Try fetch user to get nickname
+        try {
+          const ru = await fetch(`/api/user/${encodeURIComponent(j.username)}`);
+          if(ru.ok){
+            const uj = await ru.json();
+            const nick = (uj.nickname || j.username || '').slice(0,40);
+            if(remember) localStorage.setItem('kf_nickname', nick);
+            sessionStorage.setItem('kf_nickname', nick);
+          } else {
+            if(remember) localStorage.setItem('kf_nickname', j.username);
+            sessionStorage.setItem('kf_nickname', j.username);
+          }
+        } catch(e){}
+        updateSigninButtonText();
+        hideAuthModal();
+        authMsg.style.display = 'none';
+      } catch(e){
+        showError('Login failed (network)');
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+  }
+
+  if(regBtn){
+    regBtn.addEventListener('click', async function(){
+      const username = (document.getElementById('auth_reg_username').value || '').trim();
+      const password = (document.getElementById('auth_reg_password').value || '');
+      const nickname = (document.getElementById('auth_reg_nickname').value || '').trim().slice(0,40);
+      const remember = document.getElementById('auth_reg_remember').checked;
+      if(!username || !password || password.length < 6) { showError('username & password (min 6 chars) required'); return; }
+      regBtn.disabled = true;
+      try{
+        const r = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'content-type': 'application/json'},
+          body: JSON.stringify({ username, password, nickname })
+        });
+        if(!r.ok){
+          const err = await r.json().catch(()=>({ detail:'Register failed' }));
+          showError(err.detail || 'Register failed');
+          return;
+        }
+        const j = await r.json();
+        const token = j.token;
+        storeToken(token, remember);
+        // Save username and nickname
+        if(remember) localStorage.setItem('kf_username', j.username);
+        sessionStorage.setItem('kf_username', j.username);
+        if(remember) localStorage.setItem('kf_nickname', nickname || j.username);
+        sessionStorage.setItem('kf_nickname', nickname || j.username);
+        updateSigninButtonText();
+        hideAuthModal();
+        authMsg.style.display = 'none';
+      }catch(e){
+        showError('Register failed (network)');
+      } finally { regBtn.disabled = false; }
+    });
+  }
+
+  // Wire sign-in button to open modal and also to allow logout if already signed in
+  if(signinBtn){
+    signinBtn.addEventListener('click', function(){
+      const token = getStoredToken();
+      const nick = localStorage.getItem('kf_nickname') || sessionStorage.getItem('kf_nickname') || '';
+      if(token && nick){
+        // act as a small account menu: clicking will ask to logout
+        const doLogout = confirm(`Signed in as ${nick}. Click OK to log out.`);
+        if(doLogout){
+          clearToken();
+          updateSigninButtonText();
+          // Also clear local user id used in leaderboard (optional)
+          try { localStorage.removeItem('kf_user_id'); } catch(e){}
+          // show login modal again
+          showAuthModal('login');
+        }
+      } else {
+        showAuthModal('login');
+      }
+    });
+  }
+
+  // on load, initialize sign-in state (pop modal if not logged in)
+  document.addEventListener('DOMContentLoaded', function(){
+    updateSigninButtonText();
+    tryRestoreSession();
+  });
+})();
+</script>
+
 
 <!-- Toast container -->
 <div id="kf-toast" aria-hidden="true"></div>
@@ -1702,21 +2039,68 @@ async function doSpin(){
 
   // update live-wins UI and post to server (non-blocking)
   try {
-    const localUid = localStorage.getItem('kf_user_id') || ('u-' + Math.random().toString(36).slice(2,12));
-    const localNick = (localStorage.getItem('kf_nickname') || '').slice(0,40);
+    // prefer username; fallback to kf_user_id if no username saved (so older anonymous flows still work)
+    const storedUsername = (localStorage.getItem('kf_username') || sessionStorage.getItem('kf_username') || '').trim();
+    let localUsername = storedUsername;
+    if(!localUsername){
+      // if no username, fallback to existing local user id (preserve backwards compat)
+      localUsername = localStorage.getItem('kf_user_id') || sessionStorage.getItem('kf_user_id') ||
+                      ('guest-' + Math.random().toString(36).slice(2,10));
+      // store fallback so subsequent calls remain consistent
+      try{ localStorage.setItem('kf_user_fallback', localUsername); }catch(e){}
+    }
+
+    const localNick = (localStorage.getItem('kf_nickname') || sessionStorage.getItem('kf_nickname') || '').slice(0,40);
     const result = resp.win_amount > 0 ? 'win' : 'lose';
     const amtForServer = resp.win_amount > 0 ? resp.win_amount : bet;
+
+    // local UI entry (uses nickname for display, username is used for server)
     const tradeEntry = {
       ts: (new Date()).toISOString(),
-      user_id: localUid,
+      username: localUsername,
       nickname: localNick,
       result: result,
       amount: Math.round(Number(amtForServer || 0) * 100) / 100
     };
     addLiveWinLocal(tradeEntry);
+try {
+  const storedUsername = (localStorage.getItem('kf_username') || sessionStorage.getItem('kf_username') || '').trim();
+  const localNick = (localStorage.getItem('kf_nickname') || sessionStorage.getItem('kf_nickname') || '').slice(0,40);
+  const result = resp.win_amount > 0 ? 'win' : 'lose';
+  const amtForServer = resp.win_amount > 0 ? resp.win_amount : bet;
+
+  // Add local UI entry (unchanged)
+  const tradeEntry = {
+    ts: (new Date()).toISOString(),
+    username: storedUsername || ('guest-' + Math.random().toString(36).slice(2,10)),
+    nickname: localNick,
+    result: result,
+    amount: Math.round(Number(amtForServer || 0) * 100) / 100
+  };
+  addLiveWinLocal(tradeEntry);
+
+  // Only attempt to post to server if we have an auth token
+  const token = getStoredToken(); // your helper that reads session/local storage
+  if (token) {
     (async function(){
       try{
-        await fetch(`/api/user/${encodeURIComponent(localUid)}/trade`, {
+        await fetch('/api/user/me/trade', {
+          method: 'POST',
+          headers: {'content-type': 'application/json'},
+          body: JSON.stringify({ result: result, amount: amtForServer })
+        });
+      }catch(e){}
+    })();
+  } else {
+    // no auth token: don't POST to server (guest flow)
+  }
+} catch(e){
+  console.warn('live-wins update failed', e);
+}
+    // send to server using username in path (non-blocking)
+    (async function(){
+      try{
+        await fetch(`/api/user/${encodeURIComponent(localUsername)}/trade`, {
           method: 'POST',
           headers: {'content-type': 'application/json'},
           body: JSON.stringify({ result: result, amount: amtForServer })
@@ -1732,6 +2116,8 @@ async function doSpin(){
     autoBtn.disabled = false;
   }
 }
+
+
 
 /* ---------- controls ---------- */
 spinBtn.addEventListener('click', ()=> doSpin());
@@ -2447,52 +2833,61 @@ window.addEventListener('keydown', (e) => {
     if(chosen.rarity <= 3) payoutMult = Math.round((payoutMult * (8 + Math.random()*40)) * 100) / 100;
     let payout = Math.round(bet * payoutMult * 100) / 100;
 
-    /* ---------- NEW: force BOTH MONSTER and MEME cases to be hard to win ----------
-       We apply a "win gate" probability so that most drops result in payout = 0 (loss).
-       Meme cases are set to be even harder to win than monster cases. Rare items get a
-       higher chance to pay out; common items mostly result in no payout. Wins that do
-       occur are dampened to keep overall payouts modest.
+    /* ---------- UPDATED: easier wins but much smaller payouts ----------
+       Behavior:
+         - baseWinProb increased so wins are more frequent
+         - keepFactor ranges lowered so wins remain small
+         - payout is capped to a reasonable multiple of the bet
+         - rare items still get a boost to chance, but keepFactor still limits payout
     */
     if(caseMode === 'monster' || caseMode === 'meme'){
-      // base win probability defaults
-      let baseWinProb = (caseMode === 'monster') ? 0.16 : 0.12; // meme slightly rarer wins
-      // bump probability for rare items (lower rarity value => rarer)
-      if(chosen.rarity <= 3) baseWinProb = (caseMode === 'monster') ? 0.55 : 0.35;    // very rare items: monster ~55%, meme ~35%
-      else if(chosen.rarity <= 8) baseWinProb = (caseMode === 'monster') ? 0.28 : 0.18; // uncommon
-      else if(chosen.mult3 >= 12) baseWinProb = (caseMode === 'monster') ? 0.22 : 0.14; // slightly better if mult3 is high
+      // base win probability — easier wins now
+      let baseWinProb = (caseMode === 'monster') ? 0.46 : 0.38; // monster wins ~46%, meme ~38%
+      // boost probability for rarer items (rarer items still more likely to yield a payout)
+      if(chosen.rarity <= 3) baseWinProb = (caseMode === 'monster') ? 0.72 : 0.56;    // very rare: monster ~72%, meme ~56%
+      else if(chosen.rarity <= 8) baseWinProb = (caseMode === 'monster') ? 0.54 : 0.42; // uncommon
+      else if(chosen.mult3 >= 12) baseWinProb = (caseMode === 'monster') ? 0.50 : 0.40;  // if mult3 is high
 
-      // tiny global rare-roll uplift chance (so every now and then meme also pays out bigger)
-      if(Math.random() < 0.005) baseWinProb = Math.min(0.95, baseWinProb + 0.18);
+      // tiny random uplift so occasionally you still get bigger surprises
+      if(Math.random() < 0.005) baseWinProb = Math.min(0.98, baseWinProb + 0.12);
 
       const roll = Math.random();
       if(roll > baseWinProb){
-        // treat as a loss: zero payout (you still see the visual drop)
+        // treat as a loss: zero payout (visual drop still shown)
         payout = 0;
       } else {
-        // it's a 'win' — but apply a dampening factor to keep wins modest and controlled
-        // Meme wins receive slightly lower keep factor on average to keep meme cases rare and small
+        // it's a 'win' — apply stronger dampening so wins are modest
         let keepFactor;
         if(caseMode === 'monster'){
-          keepFactor = 0.55 + Math.random()*0.35; // 0.55–0.9
+          // monster: wins happen more often, but keep a smaller slice
+          keepFactor = 0.25 + Math.random()*0.20; // 0.25–0.45
         } else {
-          keepFactor = 0.45 + Math.random()*0.35; // 0.45–0.8 (meme keeps are smaller on average)
+          // meme: slightly smaller keeps on average
+          keepFactor = 0.20 + Math.random()*0.20; // 0.20–0.40
         }
 
-        // adjust by rarity (commons keep less)
-        if(chosen.rarity > 20) keepFactor = (keepFactor * 0.85) - (Math.random()*0.2);
-        if(chosen.rarity > 60) keepFactor = (keepFactor * 0.65) - (Math.random()*0.15);
+        // commons keep less than uncommon/rare
+        if(chosen.rarity > 20) keepFactor = keepFactor * 0.85;
+        if(chosen.rarity > 60) keepFactor = keepFactor * 0.70;
 
-        // clamp to sensible bounds
-        keepFactor = Math.max(0.15, Math.min(0.95, keepFactor));
+        // clamp keep factor
+        keepFactor = Math.max(0.10, Math.min(0.60, keepFactor));
+
+        // apply keep factor
         payout = Math.round(payout * keepFactor * 100) / 100;
 
-        // Occasionally (small chance) shrink further to create many tiny wins
-        if(Math.random() < 0.12) payout = Math.round(payout * (0.18 + Math.random()*0.42) * 100) / 100;
+        // additional occasional shrink to create many small wins
+        if(Math.random() < 0.12) payout = Math.round(payout * (0.12 + Math.random()*0.38) * 100) / 100;
 
-        // Extra safeguard: if payout ends up equal to bet (or very tiny), make it slightly smaller to preserve house edge
-        if(payout <= bet * 0.05) payout = 0; // very tiny wins become losses to keep frequency low
+        // Prevent trivially tiny wins: if payout <= 5% of bet, turn to 0
+        if(payout <= bet * 0.05) payout = 0;
+
+        // HARD CAP: keep wins small relative to bet (change multiplier if you want larger cap)
+        const maxPayoutCap = Math.round(bet * 1.5 * 100) / 100; // cap at 1.5x the bet
+        if(payout > maxPayoutCap) payout = maxPayoutCap;
       }
     }
+
 
     // Visual & audio
     try { cameraShake(chosen.rarity <= 3 ? 12 : 6); } catch(e){}
@@ -2614,7 +3009,7 @@ window.addEventListener('keydown', (e) => {
       const pool = (typeof buildCasePool === 'function') ? buildCasePool() : [];
       // players: user + 4 bots
       const players = [{ id:'user', name: (localStorage.getItem('kf_nickname') || 'You'), chosenName:null, value:0, previewImg:null, effective:0 }];
-      const BOT_NAMES = ['Rook','Fiz','Nova','Hexa'];
+      const BOT_NAMES = ['Rudy','Ruth','Kenzie','Alex'];
       for(let i=0;i<4;i++) players.push({ id:'bot', name: BOT_NAMES[i] || ('Bot'+(i+1)), chosenName:null, value:0, previewImg:null, effective:0 });
 
       // initial blank render
@@ -2944,15 +3339,21 @@ if(lwRefreshBtn) lwRefreshBtn.addEventListener('click', ()=> fetchLiveWinsFromSe
 
 startLiveWinsPolling();
 
-async function sendTradeToServer(userId, result, amount){
+async function sendTradeToServer(username, result, amount){
   try{
-    await fetch(`/api/user/${encodeURIComponent(userId)}/trade`, {
+    if(!username || typeof username !== 'string') {
+      // try to resolve a username from storage
+      username = (localStorage.getItem('kf_username') || sessionStorage.getItem('kf_username') || localStorage.getItem('kf_user_id') || '').toString();
+      if(!username) return;
+    }
+    await fetch(`/api/user/${encodeURIComponent(username)}/trade`, {
       method: 'POST',
       headers: {'content-type': 'application/json'},
       body: JSON.stringify({ result, amount })
     });
   }catch(e){}
 }
+
 
 /* ---------------------------
    LEADERBOARD modal + nickname prompt
@@ -3218,70 +3619,95 @@ document.addEventListener('DOMContentLoaded', function(){
     lastSyncMain.textContent = new Date().toLocaleTimeString();
   }
 
-  async function saveUserState(nick, bal){
-    const payload = {};
-    if(nick !== undefined) payload.nickname = (nick||'').slice(0,MAX_NICK_LEN);
-    if(bal !== undefined) payload.balance = Number(bal);
-    const res = await apiPost(`/user/${encodeURIComponent(userId)}`, payload);
-    return res;
+    async function saveUserState(nick, bal){
+        try {
+            const usernameFromStorage = (localStorage.getItem('kf_username') || sessionStorage.getItem('kf_username') || '').trim();
+            const usernameFallback = (typeof userId !== 'undefined' && userId) ? userId : (localStorage.getItem('kf_user_id') || sessionStorage.getItem('kf_user_id') || '');
+            const username = usernameFromStorage || usernameFallback || ('guest-' + Math.random().toString(36).slice(2,10));
+
+            const payload = {};
+            if (nick !== undefined) payload.nickname = (nick || '').slice(0, MAX_NICK_LEN);
+            if (bal !== undefined) payload.balance = Number(bal);
+
+            const res = await apiPost(`/user/${encodeURIComponent(username)}`, payload);
+            return res;
+        } catch (e) {
+            console.warn('saveUserState failed', e);
+            return null;
+        }
+    }
+
+
+try{
+  if(window.setBalance && typeof window.setBalance === 'function'){
+    const _orig = window.setBalance.bind(window);
+    window.setBalance = function(v){
+      _orig(v);
+      // use numeric window.balance (not formatted DOM text)
+      const balNow = Number(window.balance);
+      if(!isFinite(balNow)) return;
+      try{ localStorage.setItem('kf_balance', String(balNow)); }catch(e){}
+      // save to server (non-blocking) using proper numeric value
+      saveUserState(localStorage.getItem('kf_nickname') || '', balNow);
+      setTimeout(()=>{ refreshAll(); }, 800);
+    };
+  }
+}catch(e){ console.warn('wrap setBalance failed', e); }
+
+
+(async function init(){
+  nickname = (localStorage.getItem('kf_nickname') || '').slice(0,MAX_NICK_LEN);
+  if(nickname){
+    nickInputMain.value = nickname;
+    nickModalInput.value = nickname;
   }
 
-  // Wrap setBalance to save on server & localStorage (non-blocking)
-  try{
-    if(window.setBalance && typeof window.setBalance === 'function'){
-      const _orig = window.setBalance.bind(window);
-      window.setBalance = function(v){
-        _orig(v);
-        const balNow = window.balance || Number(document.getElementById('balance').textContent || 0);
-        try{ localStorage.setItem('kf_balance', String(balNow)); }catch(e){}
-        saveUserState(localStorage.getItem('kf_nickname') || '', balNow);
-        setTimeout(()=>{ refreshAll(); }, 800);
-      };
-    }
-  }catch(e){ console.warn('wrap setBalance failed', e); }
-
-  (async function init(){
-    nickname = (localStorage.getItem('kf_nickname') || '').slice(0,MAX_NICK_LEN);
-    if(nickname){
+  const serverUser = await apiGet(`/user/${encodeURIComponent(userId)}`);
+  if(serverUser && serverUser.user_id){
+    if(serverUser.nickname){
+      nickname = serverUser.nickname.slice(0,MAX_NICK_LEN);
+      localStorage.setItem('kf_nickname', nickname);
       nickInputMain.value = nickname;
       nickModalInput.value = nickname;
     }
-
-    const serverUser = await apiGet(`/user/${encodeURIComponent(userId)}`);
-    if(serverUser && serverUser.user_id){
-      if(serverUser.nickname){
-        nickname = serverUser.nickname.slice(0,MAX_NICK_LEN);
-        localStorage.setItem('kf_nickname', nickname);
-        nickInputMain.value = nickname;
-        nickModalInput.value = nickname;
-      }
-      if(typeof serverUser.balance !== 'undefined'){
-        try{
-          if(window.setBalance && typeof window.setBalance === 'function'){
-            window.setBalance(Number(serverUser.balance));
-          } else {
-            document.getElementById('balance').textContent = Number(serverUser.balance).toFixed(2);
-          }
-        }catch(e){}
-      }
+    if(typeof serverUser.balance !== 'undefined' && isFinite(Number(serverUser.balance))){
+      try{
+        if(window.setBalance && typeof window.setBalance === 'function'){
+          window.setBalance(Number(serverUser.balance));
+        } else {
+          setBalance(Number(serverUser.balance));
+        }
+      }catch(e){}
+    }
+  } else {
+    // use numeric local storage if present, else keep current window.balance
+    const localBal = localStorage.getItem('kf_balance');
+    if(localBal !== null && isFinite(Number(localBal))){
+      try{
+        if(window.setBalance && typeof window.setBalance === 'function'){
+          window.setBalance(Number(localBal));
+        } else {
+          setBalance(Number(localBal));
+        }
+      }catch(e){}
     } else {
-      const localBal = localStorage.getItem('kf_balance');
-      if(localBal !== null){
-        try{ if(window.setBalance) window.setBalance(Number(localBal)); else document.getElementById('balance').textContent = Number(localBal).toFixed(2); }catch(e){}
-      }
-      saveUserState(nickname || '', Number(document.getElementById('balance').textContent || 0));
+      // ensure we persist the in-memory balance (fallback)
+      try{ localStorage.setItem('kf_balance', String(Number(window.balance || INITIAL_BALANCE))); }catch(e){}
     }
+    // save known nickname + numeric balance to server (best-effort)
+    try { saveUserState(nickname || '', Number(window.balance || INITIAL_BALANCE)); } catch(e){}
+  }
 
-    localBalEl.textContent = formatCurrency(Number(localStorage.getItem('kf_balance') || Number(document.getElementById('balance').textContent || 0)));
+  localBalEl.textContent = formatCurrency(Number(localStorage.getItem('kf_balance') || Number(window.balance || 0)));
 
-    const seenNick = !!localStorage.getItem('kf_nickname');
-    if(!seenNick){
-      showNickModal(true);
-    }
+  const seenNick = !!localStorage.getItem('kf_nickname');
+  if(!seenNick){
+    showNickModal(true);
+  }
 
-    await refreshAll();
-    setInterval(refreshAll, 15000);
-  })();
+  await refreshAll();
+  setInterval(refreshAll, 15000);
+})();
 
   // UI events
   if(leaderboardBtn) leaderboardBtn.addEventListener('click', ()=> showLbModal(true));
@@ -3295,7 +3721,7 @@ document.addEventListener('DOMContentLoaded', function(){
     localStorage.setItem('kf_nickname', nickname);
     nickModalInput.value = nickname;
     nickInputMain.value = nickname;
-    const res = await saveUserState(nickname, Number(document.getElementById('balance').textContent || 0));
+    const res = await saveUserState(nickname, Number(window.balance || 0));
     // show confirmation toast
     showToast(`Nickname set to ${nickname}`);
     // refresh leaderboard after save
@@ -3307,7 +3733,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(!v) return alert('Enter a nickname (max 40 chars)');
     nickname = v;
     localStorage.setItem('kf_nickname', nickname);
-    const res = await saveUserState(nickname, Number(document.getElementById('balance').textContent || 0));
+    const res = await saveUserState(nickname, Number(window.balance || 0));
     showToast(`Nickname set to ${nickname}`);
     showNickModal(false);
     refreshAll();
@@ -3328,6 +3754,75 @@ document.addEventListener('DOMContentLoaded', function(){
   window.__kf_showLeaderboard = () => showLbModal(true);
 });
 </script>
+<script>
+/* Unified Rainbet modal wiring — paste this once at the end of <body> */
+(function(){
+  // run after DOM ready
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
 
+  ready(function(){
+    const rainBtn = document.getElementById('rainbetBtn');
+    const rainModal = document.getElementById('rainbetModal');
+    const rainClose = document.getElementById('rainCloseBtn');
+
+    if(!rainBtn || !rainModal){
+      console.warn('rain: missing elements', { rainBtn: !!rainBtn, rainModal: !!rainModal });
+      return;
+    }
+
+    // helper open/close
+    function openRain(){
+      // defensively remove duplicates
+      try { rainModal.classList.add('active'); } catch(e){ /* ignore */ }
+      rainModal.style.display = 'flex';
+      rainModal.setAttribute('aria-hidden', 'false');
+      // optional: prevent body scroll while modal open
+      document.documentElement.style.overflow = 'hidden';
+    }
+    function closeRain(){
+      rainModal.classList.remove('active');
+      rainModal.style.display = 'none';
+      rainModal.setAttribute('aria-hidden', 'true');
+      document.documentElement.style.overflow = '';
+    }
+
+    // remove previously-attached helper handlers if present
+    try {
+      if (rainBtn._kf_rain_handler) rainBtn.removeEventListener('click', rainBtn._kf_rain_handler);
+    } catch(e){}
+
+    const handler = function(ev){
+      try{ ev && ev.preventDefault && ev.preventDefault(); }catch(e){}
+      openRain();
+    };
+    rainBtn.addEventListener('click', handler);
+    rainBtn._kf_rain_handler = handler;
+
+    // close button
+    if(rainClose){
+      try { if(rainClose._kf_rain_close) rainClose.removeEventListener('click', rainClose._kf_rain_close); } catch(e){}
+      const ch = function(ev){ ev && ev.preventDefault && ev.preventDefault(); closeRain(); };
+      rainClose.addEventListener('click', ch);
+      rainClose._kf_rain_close = ch;
+    }
+
+    // backdrop click
+    rainModal.addEventListener('click', function(ev){
+      if(ev.target === rainModal) closeRain();
+    });
+
+    // Escape key
+    document.addEventListener('keydown', function(ev){
+      if(ev.key === 'Escape' && rainModal.classList.contains('active')) closeRain();
+    });
+
+    // ensure initial state
+    if(!rainModal.classList.contains('active')) rainModal.setAttribute('aria-hidden','true');
+  });
+})();
+</script>
 </body>
 </html>
