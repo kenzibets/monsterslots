@@ -2,9 +2,9 @@
 """
 FastAPI leaderboard backend for Kenzies Fridge (Postgres primary, local-seed fallback).
 Schema-based Postgres persistence:
- - users (username PK) 
+ - users (username PK)
  - auth_users (username PK)
- - sessions (token PK) 
+ - sessions (token PK)
  - recent_trades (id PK)
  - monthly_winners (month PK, data JSONB)
 If DATABASE_URL or psycopg2 is unavailable, falls back to existing local JSON seed file behavior.
@@ -17,7 +17,7 @@ import hmac
 from fastapi import Body
 import secrets
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Header, Depends, status
 from fastapi.responses import FileResponse, JSONResponse
@@ -27,7 +27,6 @@ from pydantic import BaseModel, Field
 import logging
 import shutil
 import decimal
-from datetime import timezone
 
 # Postgres client
 try:
@@ -55,17 +54,18 @@ _lock = threading.Lock()
 SESSION_TTL_SECONDS = int(os.environ.get("SESSION_TTL_SECONDS", 7 * 24 * 3600))  # default 7 days
 
 def _now_iso():
-    return datetime.utcnow().isoformat() + "Z"
+    # produce ISO with trailing Z (UTC)
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 def _now_ts():
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 def _get_month_key(dt: Optional[datetime]=None) -> str:
-    dt = dt or datetime.utcnow()
+    dt = dt or datetime.now(timezone.utc)
     return dt.strftime("%Y-%m")
 
 def _prev_month_key(dt: Optional[datetime]=None) -> str:
-    dt = dt or datetime.utcnow()
+    dt = dt or datetime.now(timezone.utc)
     first = dt.replace(day=1)
     prev_last = first - timedelta(days=1)
     return prev_last.strftime("%Y-%m")
@@ -274,9 +274,21 @@ def _iso_to_dt(s: Optional[str]):
     if not s:
         return None
     try:
+        # Accept trailing Z as UTC marker
         if s.endswith("Z"):
-            return datetime.fromisoformat(s[:-1])
-        return datetime.fromisoformat(s)
+            s2 = s[:-1]
+            try:
+                dt = datetime.fromisoformat(s2)
+            except Exception:
+                return None
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
+        else:
+            dt = datetime.fromisoformat(s)
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
     except Exception:
         return None
 
@@ -301,7 +313,7 @@ def _get_user_pg(conn, username: str) -> Optional[Dict[str, Any]]:
             if r.get("period_start_balance") is not None
             else float(START_BALANCE)
         )
-        last_update = (r.get("last_update").isoformat() + "Z") if r.get("last_update") else None
+        last_update = (r.get("last_update").astimezone(timezone.utc).isoformat().replace("+00:00", "Z")) if r.get("last_update") else None
         trades = int(r.get("trades") or 0)
         wins = int(r.get("wins") or 0)
 
@@ -313,7 +325,6 @@ def _get_user_pg(conn, username: str) -> Optional[Dict[str, Any]]:
             "wins": wins,
             "period_start_balance": period_start_balance,
         }
-
 
 def _upsert_user_pg(conn, username: str, user_obj: Dict[str, Any]):
     with conn.cursor() as cur:
@@ -362,7 +373,7 @@ def _get_recent_trades_pg(conn, limit=100, minutes: Optional[int]=None, nickname
         where = []
         if minutes is not None:
             where.append("ts >= %s")
-            params.append(datetime.utcnow() - timedelta(minutes=minutes))
+            params.append(datetime.now(timezone.utc) - timedelta(minutes=minutes))
         if nickname:
             where.append("lower(nickname) = lower(%s)")
             params.append(nickname)
@@ -374,8 +385,10 @@ def _get_recent_trades_pg(conn, limit=100, minutes: Optional[int]=None, nickname
         rows = cur.fetchall()
         out = []
         for r in rows:
+            ts_val = r.get("ts")
+            ts_str = (ts_val.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")) if ts_val else None
             out.append({
-                "ts": (r.get("ts").isoformat() + "Z") if r.get("ts") else None,
+                "ts": ts_str,
                 "username": r.get("username"),
                 "nickname": r.get("nickname") or "",
                 "result": r.get("result"),
@@ -438,7 +451,7 @@ def _create_session_pg(conn, token: str, username: str, expires_at: datetime):
 
 def _cleanup_expired_sessions_pg(conn):
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM sessions WHERE expires_at < %s;", (datetime.utcnow(),))
+        cur.execute("DELETE FROM sessions WHERE expires_at < %s;", (datetime.now(timezone.utc),))
         conn.commit()
 
 def _get_session_username_pg(conn, token: str) -> Optional[str]:
@@ -462,7 +475,9 @@ def _get_monthly_winner_pg(conn, month: str):
         r = cur.fetchone()
         if not r:
             return None
-        return {"podium": r.get("data").get("podium"), "closed_at": (r.get("closed_at").isoformat()+"Z") if r.get("closed_at") else None}
+        closed_at = r.get("closed_at")
+        closed_at_str = closed_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z") if closed_at else None
+        return {"podium": r.get("data").get("podium"), "closed_at": closed_at_str}
 
 def _get_all_monthly_winners_pg(conn):
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -641,7 +656,7 @@ def startup_info():
     # Ensure DB exists; if missing, _read_db will seed fallback or PG
     with _lock:
         db = _read_db()
-        # If PG connected, we attempted seeding in _read_db; also push file seed to PG if needed (handled there)
+        # If PG connected, seeding attempted in _read_db
 
 @app.get("/_debug/static-files")
 def debug_static_files():
@@ -672,7 +687,7 @@ def _create_session_for_user_pg(db_conn, username: str) -> str:
     token = generate_token()
     now_ts = int(time.time())
     expires_ts = now_ts + SESSION_TTL_SECONDS
-    expires_dt = datetime.utcfromtimestamp(expires_ts)
+    expires_dt = datetime.utcfromtimestamp(expires_ts).replace(tzinfo=timezone.utc)
     _create_session_pg(db_conn, token, username, expires_dt)
     return token
 
@@ -683,18 +698,20 @@ def _cleanup_expired_sessions_db(db_conn=None, fallback_db=None):
         # fallback: cleanup in-file sessions
         if fallback_db:
             sess = fallback_db.setdefault("auth", {}).setdefault("sessions", {})
-            now = datetime.utcnow().isoformat() + "Z"
             to_del = []
             for t, info in list(sess.items()):
                 exp = info.get("expires_at")
                 try:
                     if exp and exp.endswith("Z"):
                         exp_dt = datetime.fromisoformat(exp[:-1])
+                        exp_dt = exp_dt.replace(tzinfo=timezone.utc)
                     else:
                         exp_dt = datetime.fromisoformat(exp)
+                        if exp_dt.tzinfo is None:
+                            exp_dt = exp_dt.replace(tzinfo=timezone.utc)
                 except Exception:
                     exp_dt = None
-                if exp_dt and exp_dt < datetime.utcnow():
+                if exp_dt and exp_dt < datetime.now(timezone.utc):
                     to_del.append(t)
             for t in to_del:
                 sess.pop(t, None)
@@ -793,7 +810,7 @@ def register(body: RegisterBody):
             db.setdefault("auth", {}).setdefault("sessions", {})[token] = {
                 "username": username,
                 "created_at": _now_iso(),
-                "expires_at": datetime.utcfromtimestamp(expires_ts).isoformat() + "Z"
+                "expires_at": datetime.utcfromtimestamp(expires_ts).replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
             }
             _write_db_file_fallback(db)
             return {"status": "ok", "username": username, "token": token, "message": "registered and logged in"}
@@ -819,7 +836,7 @@ def login(body: LoginBody):
                 if not verify_password(password, salt, ph):
                     raise HTTPException(status_code=401, detail="invalid credentials")
                 token = generate_token()
-                expires_dt = datetime.utcfromtimestamp(int(time.time()) + SESSION_TTL_SECONDS)
+                expires_dt = datetime.utcfromtimestamp(int(time.time()) + SESSION_TTL_SECONDS).replace(tzinfo=timezone.utc)
                 _create_session_pg(conn, token, username, expires_dt)
                 return {"status": "ok", "token": token, "username": username, "expires_in": SESSION_TTL_SECONDS}
             finally:
@@ -843,7 +860,7 @@ def login(body: LoginBody):
             db.setdefault("auth", {}).setdefault("sessions", {})[token] = {
                 "username": username,
                 "created_at": _now_iso(),
-                "expires_at": datetime.utcfromtimestamp(expires_ts).isoformat() + "Z"
+                "expires_at": datetime.utcfromtimestamp(expires_ts).replace(tzinfo=timezone.utc).isoformat().replace("+00:00","Z")
             }
             _write_db_file_fallback(db)
             return {"status": "ok", "token": token, "username": username, "expires_in": SESSION_TTL_SECONDS}
@@ -927,9 +944,10 @@ def record_trade_me(tr: TradeRecord, username: str = Depends(get_current_usernam
                     if res == "win":
                         cur_user["balance"] = round(float(cur_user.get("balance", START_BALANCE)) + amt, 2)
                     else:
-                        cur_user["balance"] = round(float(cur_user.get("balance", START_BALANCE)) - amt, 2)
+                        # subtract on loss and clamp >= 0.0
+                        cur_user["balance"] = round(max(0.0, float(cur_user.get("balance", START_BALANCE)) - amt), 2)
                 cur_user["last_update"] = _now_iso()
-                # upsert user
+                # upsert user to PG (authoritative)
                 _upsert_user_pg(conn, user_key, cur_user)
                 # update recent_trades
                 trade_entry = {
@@ -1012,7 +1030,7 @@ def record_trade_me(tr: TradeRecord, username: str = Depends(get_current_usernam
                 if res == "win":
                     u["balance"] = round(float(u.get("balance", START_BALANCE)) + amt, 2)
                 else:
-                    u["balance"] = round(float(u.get("balance", START_BALANCE)) - amt, 2)
+                    u["balance"] = round(max(0.0, float(u.get("balance", START_BALANCE)) - amt), 2)
             u["last_update"] = _now_iso()
             trade_entry = {
                 "ts": u["last_update"],
@@ -1026,269 +1044,6 @@ def record_trade_me(tr: TradeRecord, username: str = Depends(get_current_usernam
             MAX_RECENT_TRADES = 500
             if len(recent) > MAX_RECENT_TRADES:
                 del recent[MAX_RECENT_TRADES:]
-            _write_db_file_fallback(db)
-            metrics = compute_user_metrics_from_record(u)
-            resp = {
-                "status": "ok",
-                "user": {
-                    "username": user_key,
-                    "nickname": u.get("nickname", "") or "",
-                    "balance": metrics["balance"],
-                    "performance": metrics["performance"],
-                    "win_rate": metrics["win_rate"],
-                    "trades_this_period": metrics["trades_this_period"],
-                    "wins": metrics["wins"],
-                    "period_start_balance": metrics["period_start_balance"],
-                    "last_update": u.get("last_update")
-                }
-            }
-            if changed_nick:
-                resp["message"] = f"nickname set to {changed_nick}"
-            return resp
-
-@app.get("/api/leaderboard")
-def get_leaderboard(limit: int = 100):
-    limit = max(0, min(limit, 1000))
-    with _lock:
-        if USE_PG:
-            conn = _pg_connect()
-            if not conn:
-                raise HTTPException(status_code=500, detail="Postgres connection failed")
-            try:
-                arr = _get_leaderboard_pg(conn, limit)
-                return {"leaderboard": arr, "timestamp": _now_iso()}
-            finally:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
-        else:
-            db = _read_db_file_fallback()
-            users = db.get("users", {})
-            arr = []
-            for uname, u in users.items():
-                metrics = compute_user_metrics_from_record(u)
-                arr.append({
-                    "username": uname,
-                    "nickname": u.get("nickname", "") or "",
-                    "balance": metrics["balance"],
-                    "performance": metrics["performance"],
-                    "win_rate": metrics["win_rate"],
-                    "trades_this_period": metrics["trades_this_period"]
-                })
-            arr.sort(key=lambda x: x["balance"], reverse=True)
-            return {"leaderboard": arr[:limit], "timestamp": _now_iso()}
-
-@app.get("/api/user/me")
-def get_user_me(username: str = Depends(get_current_username)):
-    with _lock:
-        if USE_PG:
-            conn = _pg_connect()
-            if not conn:
-                raise HTTPException(status_code=500, detail="Postgres connection failed")
-            try:
-                row = None
-                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                    cur.execute("SELECT username,nickname,balance,last_update,trades,wins,period_start_balance FROM users WHERE username=%s;", (username,))
-                    row = cur.fetchone()
-                if row:
-                    metrics = compute_user_metrics_from_record({
-                        "balance": float(row.get("balance") or START_BALANCE),
-                        "period_start_balance": float(row.get("period_start_balance") or START_BALANCE),
-                        "trades": int(row.get("trades") or 0),
-                        "wins": int(row.get("wins") or 0)
-                    })
-                    return {
-                        "username": username,
-                        "nickname": row.get("nickname") or "",
-                        "balance": metrics["balance"],
-                        "performance": metrics["performance"],
-                        "win_rate": metrics["win_rate"],
-                        "trades_this_period": metrics["trades_this_period"],
-                        "wins": metrics["wins"],
-                        "period_start_balance": metrics["period_start_balance"],
-                        "last_update": (row.get("last_update").isoformat()+"Z") if row.get("last_update") else None
-                    }
-                else:
-                    return {
-                        "username": username,
-                        "nickname": "",
-                        "balance": round(START_BALANCE, 2),
-                        "performance": 0.0,
-                        "win_rate": 0.0,
-                        "trades_this_period": 0,
-                        "wins": 0,
-                        "period_start_balance": round(START_BALANCE, 2),
-                        "last_update": None
-                    }
-            finally:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
-        else:
-            db = _read_db_file_fallback()
-            user = db.get("users", {}).get(username)
-            if user:
-                metrics = compute_user_metrics_from_record(user)
-                return {
-                    "username": username,
-                    "nickname": user.get("nickname", "") or "",
-                    "balance": metrics["balance"],
-                    "performance": metrics["performance"],
-                    "win_rate": metrics["win_rate"],
-                    "trades_this_period": metrics["trades_this_period"],
-                    "wins": metrics["wins"],
-                    "period_start_balance": metrics["period_start_balance"],
-                    "last_update": user.get("last_update")
-                }
-            else:
-                return {
-                    "username": username,
-                    "nickname": "",
-                    "balance": round(START_BALANCE, 2),
-                    "performance": 0.0,
-                    "win_rate": 0.0,
-                    "trades_this_period": 0,
-                    "wins": 0,
-                    "period_start_balance": round(START_BALANCE, 2),
-                    "last_update": None
-                }
-
-@app.post("/api/user/me")
-def update_user_me(upd: UserUpdate, username: str = Depends(get_current_username)):
-    user_key = username
-    with _lock:
-        if USE_PG:
-            conn = _pg_connect()
-            if not conn:
-                raise HTTPException(status_code=500, detail="Postgres connection failed")
-            try:
-                _init_schema(conn)
-                # fetch existing
-                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                    cur.execute("SELECT username,nickname,balance,last_update,trades,wins,period_start_balance FROM users WHERE username=%s;", (user_key,))
-                    row = cur.fetchone()
-                if row:
-                    u = {
-                        "nickname": row.get("nickname") or "",
-                        "balance": float(row.get("balance") or START_BALANCE),
-                        "last_update": (row.get("last_update").isoformat()+"Z") if row.get("last_update") else None,
-                        "trades": int(row.get("trades") or 0),
-                        "wins": int(row.get("wins") or 0),
-                        "period_start_balance": float(row.get("period_start_balance") or START_BALANCE)
-                    }
-                else:
-                    u = {
-                        "nickname": "",
-                        "balance": START_BALANCE,
-                        "last_update": None,
-                        "trades": 0,
-                        "wins": 0,
-                        "period_start_balance": START_BALANCE
-                    }
-                changed_nick = None
-                if upd.nickname is not None:
-                    n = (upd.nickname or "").strip()[:40]
-                    if n != u.get("nickname", ""):
-                        changed_nick = n
-                        u["nickname"] = n
-                if upd.balance is not None:
-                    try:
-                        u["balance"] = round(float(upd.balance), 2)
-                    except Exception:
-                        u["balance"] = START_BALANCE
-                if upd.trades is not None:
-                    try:
-                        u["trades"] = int(upd.trades)
-                    except Exception:
-                        u["trades"] = int(u.get("trades", 0) or 0)
-                if upd.wins is not None:
-                    try:
-                        u["wins"] = int(upd.wins)
-                    except Exception:
-                        u["wins"] = int(u.get("wins", 0) or 0)
-                if upd.period_start_balance is not None:
-                    try:
-                        u["period_start_balance"] = round(float(upd.period_start_balance), 2)
-                    except Exception:
-                        u["period_start_balance"] = START_BALANCE
-                u["last_update"] = _now_iso()
-                _upsert_user_pg(conn, user_key, u)
-                # if changed nickname, update recent_trades nicknames (best-effort)
-                if changed_nick:
-                    with conn.cursor() as cur:
-                        cur.execute("UPDATE recent_trades SET nickname=%s WHERE username=%s;", (changed_nick, user_key))
-                        conn.commit()
-                metrics = compute_user_metrics_from_record(u)
-                resp = {
-                    "status": "ok",
-                    "user": {
-                        "username": user_key,
-                        "nickname": u.get("nickname", "") or "",
-                        "balance": metrics["balance"],
-                        "performance": metrics["performance"],
-                        "win_rate": metrics["win_rate"],
-                        "trades_this_period": metrics["trades_this_period"],
-                        "wins": metrics["wins"],
-                        "period_start_balance": metrics["period_start_balance"],
-                        "last_update": u.get("last_update")
-                    }
-                }
-                if changed_nick:
-                    resp["message"] = f"nickname set to {changed_nick}"
-                return resp
-            finally:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
-        else:
-            db = _read_db_file_fallback()
-            users = db.setdefault("users", {})
-            u = users.setdefault(user_key, {
-                "nickname": "",
-                "balance": START_BALANCE,
-                "last_update": None,
-                "trades": 0,
-                "wins": 0,
-                "period_start_balance": START_BALANCE
-            })
-            changed_nick = None
-            if upd.nickname is not None:
-                n = (upd.nickname or "").strip()[:40]
-                if n != u.get("nickname", ""):
-                    changed_nick = n
-                    u["nickname"] = n
-            if upd.balance is not None:
-                try:
-                    u["balance"] = round(float(upd.balance), 2)
-                except Exception:
-                    u["balance"] = START_BALANCE
-            if upd.trades is not None:
-                try:
-                    u["trades"] = int(upd.trades)
-                except Exception:
-                    u["trades"] = int(u.get("trades", 0) or 0)
-            if upd.wins is not None:
-                try:
-                    u["wins"] = int(upd.wins)
-                except Exception:
-                    u["wins"] = int(u.get("wins", 0) or 0)
-            if upd.period_start_balance is not None:
-                try:
-                    u["period_start_balance"] = round(float(upd.period_start_balance), 2)
-                except Exception:
-                    u["period_start_balance"] = START_BALANCE
-            u["last_update"] = _now_iso()
-            if changed_nick:
-                recent = db.setdefault("recent_trades", [])
-                for ent in recent:
-                    try:
-                        if ent.get("username") == user_key:
-                            ent["nickname"] = changed_nick
-                    except Exception:
-                        pass
             _write_db_file_fallback(db)
             metrics = compute_user_metrics_from_record(u)
             resp = {
@@ -1351,7 +1106,7 @@ def get_live_wins(limit: int = 100, minutes: Optional[int] = None, nickname: Opt
             if minutes is not None:
                 try:
                     minutes = int(minutes)
-                    cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+                    cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
                 except Exception:
                     raise HTTPException(status_code=400, detail="invalid minutes parameter")
             def parse_ts(s):
@@ -1360,7 +1115,10 @@ def get_live_wins(limit: int = 100, minutes: Optional[int] = None, nickname: Opt
                         s2 = s[:-1]
                     else:
                         s2 = s
-                    return datetime.fromisoformat(s2)
+                    dt = datetime.fromisoformat(s2)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt
                 except Exception:
                     return None
             filtered = []
@@ -1517,7 +1275,7 @@ def record_trade_by_key(user_key: str, tr: TradeRecord = Body(...), authorizatio
                     u = {
                         "nickname": row.get("nickname") or "",
                         "balance": float(row.get("balance") or START_BALANCE),
-                        "last_update": (row.get("last_update").isoformat()+"Z") if row.get("last_update") else None,
+                        "last_update": (row.get("last_update").astimezone(timezone.utc).isoformat().replace("+00:00","Z")) if row.get("last_update") else None,
                         "trades": int(row.get("trades") or 0),
                         "wins": int(row.get("wins") or 0),
                         "period_start_balance": float(row.get("period_start_balance") or START_BALANCE)
@@ -1557,7 +1315,7 @@ def record_trade_by_key(user_key: str, tr: TradeRecord = Body(...), authorizatio
                     if res == "win":
                         u["balance"] = round(float(u.get("balance", START_BALANCE)) + amt, 2)
                     else:
-                        u["balance"] = round(float(u.get("balance", START_BALANCE)) - amt, 2)
+                        u["balance"] = round(max(0.0, float(u.get("balance", START_BALANCE)) - amt), 2)
                 u["last_update"] = _now_iso()
                 _upsert_user_pg(conn, user_key, u)
                 trade_entry = {
@@ -1635,7 +1393,7 @@ def record_trade_by_key(user_key: str, tr: TradeRecord = Body(...), authorizatio
                 if res == "win":
                     u["balance"] = round(float(u.get("balance", START_BALANCE)) + amt, 2)
                 else:
-                    u["balance"] = round(float(u.get("balance", START_BALANCE)) - amt, 2)
+                    u["balance"] = round(max(0.0, float(u.get("balance", START_BALANCE)) - amt), 2)
             u["last_update"] = _now_iso()
             trade_entry = {
                 "ts": u["last_update"],
