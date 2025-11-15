@@ -407,10 +407,10 @@ def _get_leaderboard_pg(conn, limit=100):
         rows = cur.fetchall()
         arr = []
         for r in rows:
-            bal = float(r.get("balance") or START_BALANCE)
+            bal = float(r.get("balance")) if r.get("balance") is not None else START_BALANCE
             trades = int(r.get("trades") or 0)
             wins = int(r.get("wins") or 0)
-            start = float(r.get("period_start_balance") or START_BALANCE)
+            start = float(r.get("period_start_balance")) if r.get("period_start_balance") is not None else START_BALANCE
             if start == 0:
                 perf = 0.0
             else:
@@ -425,6 +425,7 @@ def _get_leaderboard_pg(conn, limit=100):
                 "trades_this_period": trades
             })
         return arr
+
 
 def _create_auth_user_pg(conn, username: str, salt: str, passhash: str, nickname: Optional[str]):
     with conn.cursor() as cur:
@@ -543,7 +544,7 @@ def compute_podium_snapshot_from_users_rows(rows):
     podium = []
     for i, r in enumerate(rows):
         nickname = r.get("nickname") or ""
-        balance = float(r.get("balance") or START_BALANCE)
+        balance = float(r.get("balance")) if r.get("balance") is not None else START_BALANCE
         podium.append({
             "position": i+1,
             "username": r.get("username"),
@@ -1112,8 +1113,8 @@ def get_user_me(username: str = Depends(get_current_username)):
                     row = cur.fetchone()
                 if row:
                     metrics = compute_user_metrics_from_record({
-                        "balance": float(row.get("balance") or START_BALANCE),
-                        "period_start_balance": float(row.get("period_start_balance") or START_BALANCE),
+                        "balance": float(row.get("balance")) if row.get("balance") is not None else START_BALANCE,
+                        "period_start_balance": float(row.get("period_start_balance")) if row.get("period_start_balance") is not None else START_BALANCE,
                         "trades": int(row.get("trades") or 0),
                         "wins": int(row.get("wins") or 0)
                     })
@@ -1191,11 +1192,11 @@ def update_user_me(upd: UserUpdate, username: str = Depends(get_current_username
                 if row:
                     u = {
                         "nickname": row.get("nickname") or "",
-                        "balance": float(row.get("balance") or START_BALANCE),
+                        "balance": float(row.get("balance")) if row.get("balance") is not None else START_BALANCE,
                         "last_update": (row.get("last_update").isoformat()+"Z") if row.get("last_update") else None,
                         "trades": int(row.get("trades") or 0),
                         "wins": int(row.get("wins") or 0),
-                        "period_start_balance": float(row.get("period_start_balance") or START_BALANCE)
+                        "period_start_balance": float(row.get("period_start_balance")) if row.get("period_start_balance") is not None else START_BALANCE
                     }
                 else:
                     u = {
